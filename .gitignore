@@ -18,5 +18,6 @@ experiments/datasets/**/*.csv
 checkpoints/
 
 # Experiment outputs
-results/
-logs/
+experiments/results/*
+!experiments/results/
+!experiments/results/ETTh1.md
