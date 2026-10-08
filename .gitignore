@@ -4,3 +4,19 @@ venv/
 .vscode/
 .idea/
 *.pyc
+
+# Author reference implementation
+official/
+
+# Experiment datasets
+experiments/datasets/*.csv
+experiments/datasets/**/*.csv
+
+# Model checkpoints
+*.pth
+*.pt
+checkpoints/
+
+# Experiment outputs
+results/
+logs/
