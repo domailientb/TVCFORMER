@@ -30,33 +30,40 @@ def main():
         print("ERROR: ETTh1.yaml was not found.")
         return
 
-    command = [
-        sys.executable,
-        "run_TVCFormer.py",
-        "--config_yaml",
-        str(CONFIG_FILE),
-        "--is_training",
-        "1",
-        "--model_id",
-        "TVCFormer_ETTh1_336_192",
-        "--model",
-        "TVCFormer",
-        "--data",
-        "ETTh1",
-        "--seq_len",
-        "336",
-        "--pred_len",
-        "192",
-        "--root_path",
-        str(DATASET_DIR),
-        "--data_path",
-        "ETTh1.csv",
-    ]
+    pred_lengths = [96, 192, 336, 720]
 
-    print("Starting TVCFormer...")
-    print()
+    for pred_len in pred_lengths:
+        model_id = f"TVCFormer_ETTh1_336_{pred_len}"
 
-    subprocess.run(command, cwd=OFFICIAL_DIR, check=True)
+        command = [
+            sys.executable,
+            "run_TVCFormer.py",
+            "--config_yaml",
+            str(CONFIG_FILE),
+            "--is_training",
+            "1",
+            "--model_id",
+            model_id,
+            "--model",
+            "TVCFormer",
+            "--data",
+            "ETTh1",
+            "--seq_len",
+            "336",
+            "--pred_len",
+            str(pred_len),
+            "--root_path",
+            str(DATASET_DIR),
+            "--data_path",
+            "ETTh1.csv",
+        ]
+
+        print("=" * 60)
+        print(f"Starting TVCFormer - ETTh1 - pred_len={pred_len}")
+        print("=" * 60)
+        print()
+
+        subprocess.run(command, cwd=OFFICIAL_DIR, check=True)
 
 
 if __name__ == "__main__":
