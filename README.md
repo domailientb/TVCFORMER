@@ -4,36 +4,19 @@ Repository này phục vụ tái thực nghiệm, phân tích mở rộng và đ
 
 ## 1. GIỚI THIỆU CHUNG 
 
-Dự báo chuỗi thời gian đa biến dài hạn (Long-Term Multivariate Time Series Forecasting) là bài toán dự đoán các giá trị trong tương lai dựa trên nhiều biến quan sát theo thời gian. Đây là một bài toán quan trọng và được ứng dụng trong nhiều lĩnh vực thực tế, ví dụ như:
+**Long-Term Multivariate Time Series Forecasting** là bài toán dự báo các giá trị tương lai dựa trên dữ liệu lịch sử của nhiều biến được quan sát theo thời gian. Bài toán có nhiều ứng dụng thực tế như dự báo nhu cầu điện năng, dự báo thời tiết, giao thông và giám sát các hệ thống công nghiệp.
 
-- Dự báo nhu cầu và tiêu thụ điện năng
-- Dự báo thời tiết
-- Giao thông
-- Kinh tế và tài chính
-- Quản lý năng lượng
-- Các hệ thống IoT và công nghiệp
-- ....
+Một thách thức quan trọng là mối quan hệ giữa các biến có thể thay đổi theo từng khoảng thời gian. Vì vậy, mô hình cần khai thác đồng thời **temporal dependencies** và **inter-variable correlations**.
 
-Một thách thức quan trọng là mối quan hệ giữa các biến có thể thay đổi theo từng khoảng thời gian. Vì vậy, việc sử dụng một cấu trúc tương quan cố định có thể không phản ánh đầy đủ các đặc điểm cục bộ và động của dữ liệu.
+Bài báo **TVCFormer** kết hợp **Transformer** và **Graph Neural Network (GNN)**, sử dụng **Time-Variable Coupling Correlation Graph (TVC Graph)** để mô hình hóa các mối quan hệ tương quan cục bộ giữa các biến theo từng khoảng thời gian.
 
-Để giải quyết vấn đề này, bài báo "TVCFormer" kết hợp **Transformer** và **Graph Neural Network (GNN)**. Mô hình xây dựng **Time-Variable Coupling Correlation Graph (TVC Graph)** để mô hình hóa mối quan hệ tương quan cục bộ, thay đổi theo thời gian giữa các biến, trong khi Transformer được sử dụng để học các phụ thuộc theo thời gian.
-
-Trong project này, mô hình TVCFormer được **tái thực nghiệm** dựa trên mã nguồn, dữ liệu và thiết lập do tác giả cung cấp. Kết quả sẽ được đánh giá, phân tích và so sánh với một số phương pháp dự báo chuỗi thời gian khác.
+Project tập trung vào việc tìm hiểu phương pháp, tái thực nghiệm mô hình theo thiết lập phù hợp với bài báo, đánh giá kết quả và so sánh với các phương pháp khác trong bài toán forecasting.
 
 ## 2. THÔNG TIN BÀI BÁO
 
 **Tên bài báo:** TVC Former: A transformer-based long-term multivariate time series forecasting method using time-variable coupling correlation graph
 
-**Tác giả:**
-
-- Zhenyu Liu
-- Yuan Feng
-- Hui Liu
-- Ruining Tang
-- Bo Yang
-- Donghao Zhang
-- Weiqiang Jia
-- Jianrong Tan
+**Tác giả:** Zhenyu Liu, Yuan Feng, Hui Liu, Ruining Tang, Bo Yang, Donghao Zhang, Weiqiang Jia và Jianrong Tan
 
 **Tạp chí:** Knowledge-Based Systems
 
@@ -64,23 +47,27 @@ Project được thực hiện với các mục tiêu chính:
 
 ## 4. PHÁT BIỂU BÀI TOÁN
 
-TVCFormer tập trung vào bài toán **dự báo chuỗi thời gian đa biến dài hạn**. Với một chuỗi thời gian gồm nhiều biến được quan sát trong một khoảng thời gian lịch sử, mục tiêu là dự đoán giá trị của các biến tại những thời điểm trong tương lai.
+Theo bài báo, multivariate time series được biểu diễn bằng ma trận
+\(Z \in \mathbb{R}^{C \times T}\), trong đó \(C\) là số biến và \(T\)
+là số bước thời gian.
 
-Bài toán yêu cầu mô hình đồng thời khai thác hai loại thông tin:
+Với ma trận dữ liệu lịch sử đầu vào
+\(X \in \mathbb{R}^{C \times T_s}\), TVCFormer xây dựng hàm dự báo
+\(\hat{Y}=f(X\mid\theta)\) để dự đoán chuỗi mục tiêu
+\(Y \in \mathbb{R}^{C \times T_p}\), trong đó \(T_s\) là độ dài chuỗi
+đầu vào và \(T_p\) là độ dài dự báo.
 
-- **Sự phụ thuộc theo thời gian** của từng biến.
-- **Mối quan hệ giữa các biến** trong chuỗi thời gian.
-
-Trong thực tế, mối quan hệ giữa các biến có thể thay đổi theo từng giai đoạn. Do đó, việc sử dụng một cấu trúc tương quan cố định trên toàn bộ chuỗi dữ liệu có thể chưa mô hình hóa đầy đủ các đặc điểm cục bộ và thay đổi theo thời gian.
-
-TVCFormer giải quyết vấn đề này bằng cách mô hình hóa mối quan hệ giữa các biến ở mức **local window-level subsequences** thông qua **Time-Variable Coupling Correlation Graph (TVC Graph)**. Cách tiếp cận này cho phép mô hình khai thác các mối quan hệ tương quan cục bộ và kết hợp chúng với khả năng học phụ thuộc dài hạn của Transformer.
+Để mô hình hóa các mối quan hệ tương quan cục bộ giữa các biến, dữ liệu
+đầu vào được chia thành các local window-level subsequences và tiếp tục
+được phân chia thành patches. Từ các subsequences này, mô hình xây dựng
+Time-Variable Coupling Correlation Graph (TVC Graph), kết hợp Graph
+Neural Network và Transformer để khai thác thông tin tương quan giữa
+các biến và temporal dependencies.
 
 ## 5. ĐÓNG GÓP CHÍNH CỦA BÀI BÁO
 
-Bài báo đưa ra ba đóng góp chính:
+### - Time-Variable Coupling Correlation Graph: Đề xuất **TVC Graph** để biểu diễn các local inter-variable correlation patterns trong multivariate time series. Mỗi node đại diện cho một local subsequence, giúp mô hình khai thác các mối quan hệ tương quan tại những khoảng thời gian khác nhau.
 
-1. **Đề xuất TVC Graph** để mô hình hóa các mẫu tương quan cục bộ giữa các biến trong chuỗi thời gian đa biến. Mỗi nút trong đồ thị biểu diễn một subsequence cục bộ của một biến.
+### - Dynamic Graph Construction: Đề xuất cơ chế xây dựng và tối ưu TVC Graph dựa trên statistical similarity, kết hợp với **Pattern Capture-Fusion Sparsification**. Cơ chế này sử dụng learnable parameters để điều chỉnh cấu trúc đồ thị phù hợp với đặc điểm dữ liệu và forecasting task.
 
-2. **Đề xuất phương pháp xây dựng TVC Graph động**, gồm khởi tạo đồ thị dựa trên độ tương đồng thống kê và cơ chế **Pattern Capture-Fusion Sparsification** sử dụng các tham số có thể học để tối ưu cấu trúc đồ thị theo từng nhiệm vụ.
-
-3. **Đề xuất Time-Variable Joint-Encoding Framework**, kết hợp Transformer và Graph Neural Network. Transformer được sử dụng để học các phụ thuộc dài hạn trong từng biến, trong khi GNN khai thác các mối quan hệ tương quan cục bộ giữa các biến thông qua TVC Graph.
+### - Time-Variable Joint-Encoding Framework: Đề xuất **Time-Variable Joint-Encoding Framework**, kết hợp Transformer và Graph Neural Network (GNN). Transformer khai thác temporal dependencies, trong khi GNN học các mối quan hệ giữa các nodes trên TVC Graph.
