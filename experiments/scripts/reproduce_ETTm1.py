@@ -8,7 +8,7 @@ OFFICIAL_DIR = PROJECT_ROOT / "official"
 
 DATASET_DIR = PROJECT_ROOT / "experiments" / "datasets" / "ETT-small"
 DATASET_FILE = DATASET_DIR / "ETTm1.csv"
-CONFIG_FILE = PROJECT_ROOT / "experiments" / "configs" / "ETTm1.yaml"
+CONFIG_FILE = OFFICIAL_DIR / "configs" / "ETTm1.yaml"
 
 
 def main():
@@ -30,33 +30,40 @@ def main():
         print("ERROR: ETTm1.yaml was not found.")
         return
 
-    command = [
-        sys.executable,
-        "run_TVCFormer.py",
-        "--config_yaml",
-        str(CONFIG_FILE),
-        "--is_training",
-        "1",
-        "--model_id",
-        "TVCFormer_ETTm1_336_192",
-        "--model",
-        "TVCFormer",
-        "--data",
-        "ETTm1",
-        "--seq_len",
-        "336",
-        "--pred_len",
-        "192",
-        "--root_path",
-        str(DATASET_DIR),
-        "--data_path",
-        "ETTm1.csv",
-    ]
+    pred_lengths = [96, 192, 336, 720]
 
-    print("Starting TVCFormer...")
-    print()
+    for pred_len in pred_lengths:
+        model_id = f"TVCFormer_ETTm1_336_{pred_len}"
 
-    subprocess.run(command, cwd=OFFICIAL_DIR, check=True)
+        command = [
+            sys.executable,
+            "run_TVCFormer.py",
+            "--config_yaml",
+            str(CONFIG_FILE),
+            "--is_training",
+            "1",
+            "--model_id",
+            model_id,
+            "--model",
+            "TVCFormer",
+            "--data",
+            "ETTm1",
+            "--seq_len",
+            "336",
+            "--pred_len",
+            str(pred_len),
+            "--root_path",
+            str(DATASET_DIR),
+            "--data_path",
+            "ETTm1.csv",
+        ]
+
+        print("=" * 60)
+        print(f"Starting TVCFormer - ETTm1 - pred_len={pred_len}")
+        print("=" * 60)
+        print()
+
+        subprocess.run(command, cwd=OFFICIAL_DIR, check=True)
 
 
 if __name__ == "__main__":
