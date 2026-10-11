@@ -11,5 +11,5 @@
 - Seq_len: 336
 - Device: GPU (`cuda:0`)
 - Batch size:** 128
-- onfig đang dùng: `official/configs/ETTh2.yaml`
+- onfig: `official/configs/ETTh2.yaml`
 - Early stopping: yes

@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import subprocess
 import sys
@@ -8,7 +9,7 @@ OFFICIAL_DIR = PROJECT_ROOT / "official"
 
 DATASET_DIR = PROJECT_ROOT / "experiments" / "datasets" / "ETT-small"
 DATASET_FILE = DATASET_DIR / "ETTh2.csv"
-CONFIG_FILE = OFFICIAL_DIR / "configs" / "ETTh2.yaml"
+CONFIG_FILE = PROJECT_ROOT / "experiments" / "configs" / "ETTh2.yaml"
 
 
 def main():

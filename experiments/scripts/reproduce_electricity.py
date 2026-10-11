@@ -1,40 +1,88 @@
+
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 OFFICIAL_DIR = PROJECT_ROOT / "official"
-DATASET_DIR = PROJECT_ROOT / "experiments" / "datasets"
 
-PRED_LENS = [96, 192, 336, 720]
+DATASET_DIR = PROJECT_ROOT / "experiments" / "datasets"
+DATASET_FILE = DATASET_DIR / "electricity.csv"
+CONFIG_FILE = PROJECT_ROOT / "experiments" / "configs" / "electricity.yaml"
+
 SEQ_LEN = 336
+PRED_LENGTHS = [96, 192, 336, 720]
 
 
 def main():
-    data_path = DATASET_DIR / "electricity.csv"
+    print("=" * 65)
+    print("TVCFormer Reproduction - Electricity")
+    print("=" * 65)
+    print(f"Project root : {PROJECT_ROOT}")
+    print(f"Official code: {OFFICIAL_DIR}")
+    print(f"Dataset      : {DATASET_FILE}")
+    print(f"Config       : {CONFIG_FILE}")
+    print(f"Sequence len : {SEQ_LEN}")
+    print(f"Pred lengths : {PRED_LENGTHS}")
+    print("AMP           : Disabled")
+    print("=" * 65)
 
-    if not data_path.exists():
-        raise FileNotFoundError(
-            f"Khong tim thay dataset: {data_path}\n"
-            "Hay kiem tra ten file va dat dataset vao experiments/datasets."
-        )
+    required_files = [
+        ("Official code", OFFICIAL_DIR / "run_TVCFormer.py"),
+        ("Dataset", DATASET_FILE),
+        ("Config", CONFIG_FILE),
+    ]
 
-    for pred_len in PRED_LENS:
+    for name, path in required_files:
+        if not path.is_file():
+            print(f"ERROR: {name} not found: {path}")
+            return 1
+
+    for pred_len in PRED_LENGTHS:
+        model_id = f"TVCFormer_Electricity_{SEQ_LEN}_{pred_len}"
+
         command = [
             sys.executable,
-            str(OFFICIAL_DIR / "run_TVCFormer.py"),
-            "--config_yaml", str(OFFICIAL_DIR / "configs" / "electricity.yaml"),
+            "run_TVCFormer.py",
+            "--config_yaml", str(CONFIG_FILE),
+            "--is_training", "1",
+            "--model_id", model_id,
             "--model", "TVCFormer",
             "--data", "custom",
-            "--root_path", str(DATASET_DIR),
-            "--data_path", data_path.name,
             "--seq_len", str(SEQ_LEN),
             "--pred_len", str(pred_len),
+            "--root_path", str(DATASET_DIR),
+            "--data_path", DATASET_FILE.name,
         ]
 
-        print(f"\n===== Electricity | pred_len={pred_len} =====", flush=True)
-        subprocess.run(command, cwd=PROJECT_ROOT, check=True)
+        print()
+        print("=" * 65)
+        print(f"Starting Electricity: pred_len={pred_len}")
+        print(f"Model ID: {model_id}")
+        print("=" * 65)
+
+        try:
+            subprocess.run(command, cwd=OFFICIAL_DIR, check=True)
+
+        except subprocess.CalledProcessError as error:
+            print(
+                f"ERROR: Training failed for pred_len={pred_len}, "
+                f"exit code={error.returncode}"
+            )
+            return error.returncode
+
+        except KeyboardInterrupt:
+            print("\nTraining interrupted by user.")
+            return 130
+
+    print()
+    print("=" * 65)
+    print("All Electricity prediction lengths completed.")
+    print("=" * 65)
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
