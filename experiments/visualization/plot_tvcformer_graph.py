@@ -11,12 +11,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-# ============================================================
-# 1. Project paths
-# ============================================================
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OFFICIAL_DIR = PROJECT_ROOT / "official"
+
+PRED_LEN = 720
+SEQ_LEN = 336
+DATASET_NAME = "ETTh1"
+SAMPLE_COUNT = 3
 
 CONFIG_FILE = OFFICIAL_DIR / "configs" / "ETTh1.yaml"
 
@@ -33,15 +34,15 @@ OUTPUT_DIR = (
     / "experiments"
     / "figures"
     / "graph"
-    / "ETTh1_pred96"
+    / f"{DATASET_NAME}_pred{PRED_LEN}"
 )
 
 GRAPH_DIR = OUTPUT_DIR / "graphs"
 
-MODEL_ID = "TVCFormer_ETTh1_336_96"
+MODEL_ID = f"TVCFormer_{DATASET_NAME}_{SEQ_LEN}_{PRED_LEN}"
 
 SETTING = (
-    "TVCFormer_ETTh1_336_96"
+    f"TVCFormer_{DATASET_NAME}_{SEQ_LEN}_{PRED_LEN}"
     "_dm32_nh8_el2_dl1_df128"
     "_gch4_gck3_tn7_kr0.7_0"
 )
@@ -62,11 +63,6 @@ OFFICIAL_OUTPUT = (
     / "visual_data"
 )
 
-
-# ============================================================
-# 2. Check required files
-# ============================================================
-
 def check_paths():
     required_files = [
         OFFICIAL_DIR / "run_TVCFormer.py",
@@ -82,22 +78,21 @@ def check_paths():
             )
 
     print("=" * 65)
-    print("TVCFormer graph visualization - ETTh1, pred_len=96")
+    print(
+        f"TVCFormer graph visualization - "
+        f"{DATASET_NAME}, pred_len={PRED_LEN}"
+    )
     print("=" * 65)
+    print(f"Project    : {PROJECT_ROOT}")
     print(f"Dataset    : {DATASET_FILE}")
     print(f"Config     : {CONFIG_FILE}")
     print(f"Checkpoint : {CHECKPOINT}")
-    print(f"Graph dir  : {GRAPH_DIR}")
+    print(f"Output     : {OUTPUT_DIR}")
     print()
 
 
-# ============================================================
-# 3. Run official visualization
-# ============================================================
-
 def run_official_visualization():
-    # Remove only the old visualization output for this setting.
-    # Do not remove checkpoints or source code.
+  
     if OFFICIAL_OUTPUT.exists():
         shutil.rmtree(OFFICIAL_OUTPUT)
 
@@ -111,24 +106,24 @@ def run_official_visualization():
         "--visualize",
         "True",
         "--visual_samples_num",
-        "3",
+        str(SAMPLE_COUNT),
         "--model_id",
         MODEL_ID,
         "--model",
         "TVCFormer",
         "--data",
-        "ETTh1",
+        DATASET_NAME,
         "--root_path",
         str(DATASET_DIR),
         "--data_path",
         DATASET_FILE.name,
         "--seq_len",
-        "336",
+        str(SEQ_LEN),
         "--pred_len",
-        "96",
+        str(PRED_LEN),
     ]
 
-    print("Running official visualization...")
+    print("Running official visualization:")
     print(subprocess.list2cmdline(command))
     print()
 
@@ -140,14 +135,11 @@ def run_official_visualization():
 
     if not OFFICIAL_OUTPUT.is_dir():
         raise FileNotFoundError(
-            "Official visualization output not found:\n"
+            "Official visualization output was not created:\n"
             f"{OFFICIAL_OUTPUT}"
         )
 
 
-# ============================================================
-# 4. Copy author outputs into experiments/
-# ============================================================
 
 def collect_outputs():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -174,18 +166,17 @@ def collect_outputs():
             "No visualization files were generated."
         )
 
-    print(f"Copied {copied_files} visualization files.")
+    print(f"Copied {copied_files} files into:")
+    print(OUTPUT_DIR)
 
-
-# ============================================================
-# 5. Redraw graph images and overwrite existing PNG files
-# ============================================================
 
 def plot_graph_matrix(graph_matrix, sample_index, output_dir):
     """
-    Draw a graph matrix with visible cell boundaries and
-    stronger separators between the 7 variable groups.
-    Save directly to graphs/<sample_index>.png.
+    Redraw a saved graph matrix.
+
+    PNG files are saved directly into graphs/ and overwrite
+    the corresponding existing PNG files. The graph matrix
+    NPY files are retained unchanged.
     """
     graph_matrix = np.asarray(graph_matrix).squeeze()
 
@@ -200,25 +191,32 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
 
     node_count = graph_matrix.shape[0]
 
+    if not np.isfinite(graph_matrix).all():
+        raise ValueError(
+            f"Graph matrix {sample_index} contains NaN or infinity."
+        )
+
     fig, ax = plt.subplots(
         figsize=(10, 9),
         dpi=180,
     )
 
-    vmax = float(np.nanmax(graph_matrix))
-    if not np.isfinite(vmax) or vmax <= 0:
-        vmax = 1.0
+    vmax = float(np.max(graph_matrix))
+    vmin = min(0.0, float(np.min(graph_matrix)))
+
+    if vmax == vmin:
+        vmax = vmin + 1.0
 
     image = ax.imshow(
         graph_matrix,
         cmap="Blues",
         interpolation="nearest",
         aspect="equal",
-        vmin=0,
+        vmin=vmin,
         vmax=vmax,
     )
 
-    # Fine grid: one cell per graph node.
+    # Draw thin lines between individual nodes.
     ax.set_xticks(
         np.arange(-0.5, node_count, 1),
         minor=True,
@@ -227,23 +225,25 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
         np.arange(-0.5, node_count, 1),
         minor=True,
     )
+
     ax.grid(
         which="minor",
-        color="#8FA3B8",
+        color="#9AAFC2",
         linewidth=0.3,
         alpha=0.9,
     )
+
     ax.tick_params(
         which="minor",
         bottom=False,
         left=False,
     )
 
-    # ETTh1: 7 variables, each represented by 7 time nodes.
     if node_count == 49:
         time_node_num = 7
         variable_count = 7
 
+        # Strong separators between variable groups.
         for boundary in range(
             time_node_num,
             node_count,
@@ -265,6 +265,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
             + (time_node_num - 1) / 2
             for group in range(variable_count)
         ]
+
         labels = [
             f"V{i}"
             for i in range(1, variable_count + 1)
@@ -272,6 +273,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
 
         ax.set_xticks(centers)
         ax.set_xticklabels(labels, fontsize=10)
+
         ax.set_yticks(centers)
         ax.set_yticklabels(labels, fontsize=10)
 
@@ -290,7 +292,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
         ax.set_ylabel("Source node")
 
     ax.set_title(
-        f"Graph A: {sample_index}",
+        f"TVCFormer Graph A: {sample_index}",
         fontsize=14,
         pad=12,
     )
@@ -305,7 +307,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
 
     fig.tight_layout()
 
-    # Same filename as the existing graph image: overwrite it.
+    # Save directly to graphs/<sample_index>.png.
     image_path = output_dir / f"{sample_index}.png"
 
     fig.savefig(
@@ -314,9 +316,10 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
         bbox_inches="tight",
         facecolor="white",
     )
+
     plt.close(fig)
 
-    print(f"Updated image: {image_path}")
+    print(f"Updated graph image: {image_path}")
 
 
 def redraw_graph_images():
@@ -328,9 +331,9 @@ def redraw_graph_images():
     matrix_files = list(GRAPH_DIR.glob("*.npy"))
 
     def sort_key(path):
-        return (
-            0, int(path.stem)
-        ) if path.stem.isdigit() else (1, path.stem)
+        if path.stem.isdigit():
+            return (0, int(path.stem))
+        return (1, path.stem)
 
     matrix_files.sort(key=sort_key)
 
@@ -349,10 +352,6 @@ def redraw_graph_images():
         )
 
 
-# ============================================================
-# 6. Main
-# ============================================================
-
 def main():
     check_paths()
     run_official_visualization()
@@ -361,10 +360,9 @@ def main():
 
     print()
     print("=" * 65)
-    print("COMPLETED")
+    print("GRAPH VISUALIZATION COMPLETED")
     print("=" * 65)
-    print("Graph PNG images have been overwritten in:")
-    print(GRAPH_DIR)
+    print(f"Results saved in:\n{OUTPUT_DIR}")
 
 
 if __name__ == "__main__":
