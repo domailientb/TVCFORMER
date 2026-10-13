@@ -1,0 +1,5 @@
+Dataset, Model   , Seq_len, Pred_len, MSE  , MAE  , Seed, Epochs
+ETTh1  , TimesNet,      96,       96, 0.389, 0.401, 2021,     10
+ETTh1  , TimesNet,      96,      192, 0.439, 0.429, 2021,      8
+ETTh1  , TimesNet,      96,      336, 0.483, 0.471, 2021,      5
+ETTh1  , TimesNet,      96,      720, 0.521, 0.495, 2021,      5
