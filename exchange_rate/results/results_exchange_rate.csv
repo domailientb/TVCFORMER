@@ -1,0 +1,5 @@
+Model    , Dataset      , Seq_len, Pred_len, MSE     , MAE
+TVCFormer, Exchange_Rate,     336,       96, 0.098434, 0.220641
+TVCFormer, Exchange_Rate,     336,      192, 0.194259, 0.314162
+TVCFormer, Exchange_Rate,     336,      336, 0.364840, 0.441006
+TVCFormer, Exchange_Rate,     336,      720, 0.907164, 0.707640

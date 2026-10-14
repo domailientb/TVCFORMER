@@ -1,0 +1,37 @@
+# dataset
+root_path: 'experiments/datasets'
+data_path: 'exchange_rate.csv'
+scale: True
+target: 'OT'
+
+# model
+model: 'TVCFormer'
+e_layers: 2
+d_layers: 1
+enc_in: 8
+patch_len: 12
+stride: 6
+time_node_num: 7
+gnn_r_degree: 1
+affine: False
+
+# train
+itr: 1
+batch_size: 128
+patience: 5
+train_epochs: 100
+checkpoints: 'checkpoints/Exchange_Rate'
+lradj: 'type3'
+pct_start: 0.3
+
+# adjust
+d_model: 32
+n_heads: 8
+d_ff: 128
+learning_rate: 0.001
+dropout: 0.5
+head_dropout: 0.0
+gnn_hidden_size: 32
+graph_conv_hidden_size: 4
+graph_conv_kernel_size: 3
+subgraph_keep_rate: 0.7
