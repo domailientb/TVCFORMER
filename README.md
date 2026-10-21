@@ -1,73 +1,83 @@
-# TVCFORMER: A TRANSFORMER-BASED LONG-TERM MULTIVARIATE TIME SERIES FORECASTING METHOD USING TIME-VARIABLE COUPLING CORRELATION GRAPH
+# TVCFormer: Long-Term Multivariate Time Series Forecasting
 
-Repository này phục vụ tái thực nghiệm, phân tích mở rộng và đọc hiểu bài báo TVCFormer trong khuôn khổ bài tập môn học.
+Repository phục vụ **đọc hiểu, tái thực nghiệm và phân tích mở rộng** mô hình TVCFormer trong bài toán *Long-Term Multivariate Time Series Forecasting (L-MTSF)*.
 
-## 1. GIỚI THIỆU CHUNG 
+## 1. Overview
 
-**Long-Term Multivariate Time Series Forecasting** là bài toán dự báo các giá trị tương lai dựa trên dữ liệu lịch sử của nhiều biến được quan sát theo thời gian. Bài toán có nhiều ứng dụng thực tế như dự báo nhu cầu điện năng, dự báo thời tiết, giao thông và giám sát các hệ thống công nghiệp.
+Long-Term Multivariate Time Series Forecasting (L-MTSF) là bài toán dự báo giá trị tương lai của nhiều biến dựa trên dữ liệu lịch sử. Một thách thức quan trọng là mối quan hệ giữa các biến có thể thay đổi theo thời gian, khiến các phương pháp sử dụng tương quan cố định khó nắm bắt đầy đủ những phụ thuộc cục bộ.
 
-Một thách thức quan trọng là mối quan hệ giữa các biến có thể thay đổi theo từng khoảng thời gian. Vì vậy, mô hình cần khai thác đồng thời **temporal dependencies** và **inter-variable correlations**.
+**TVCFormer** kết hợp Transformer và Graph Neural Network (GNN), sử dụng *Time-Variable Coupling Correlation Graph (TVC Graph)* để khai thác phụ thuộc theo thời gian và tương quan giữa các biến.
 
-Bài báo **TVCFormer** kết hợp **Transformer** và **Graph Neural Network (GNN)**, sử dụng **Time-Variable Coupling Correlation Graph (TVC Graph)** để mô hình hóa các mối quan hệ tương quan cục bộ giữa các biến theo từng khoảng thời gian.
+## 2. Paper Information
 
-Project tập trung vào việc tìm hiểu phương pháp, tái thực nghiệm mô hình theo thiết lập phù hợp với bài báo, đánh giá kết quả và so sánh với các phương pháp khác trong bài toán forecasting.
+- **Title:** TVC Former: A Transformer-Based Long-Term Multivariate Time Series Forecasting Method Using Time-Variable Coupling Correlation Graph
+- **Authors:** Zhenyu Liu et al.
+- **Journal:** Knowledge-Based Systems, Volume 314, 2025, Article 113147
+- **DOI:** [10.1016/j.knosys.2025.113147](https://doi.org/10.1016/j.knosys.2025.113147)
+- **Official Repository:** [IFengSource/TVCFormer](https://github.com/IFengSource/TVCFormer)
+- **Dataset:** [Download datasets](https://drive.google.com/drive/folders/1ZOYpTUa82_jCcxIdTmyr0LXQfvaM9vIy)
 
-## 2. THÔNG TIN BÀI BÁO
+## 3. Key Contributions
 
-**Tên bài báo:** TVC Former: A transformer-based long-term multivariate time series forecasting method using time-variable coupling correlation graph
+- **TVC Graph:** Biểu diễn tương quan cục bộ giữa các đoạn chuỗi thời gian thuộc những biến khác nhau.
+- **Adaptive Graph Construction:** Kết hợp Pearson correlation và Top-K selection để xác định các kết nối quan trọng.
+- **Graph Sparsification:** Sử dụng cơ chế *Pattern Capture-Fusion Sparsification* nhằm tinh giản đồ thị và chọn lọc thông tin.
+- **Time-Variable Joint Encoding:** Kết hợp Transformer để học đặc trưng thời gian và GNN để tổng hợp thông tin từ các nút liên quan trên đồ thị.
 
-**Tác giả:** Zhenyu Liu, Yuan Feng, Hui Liu, Ruining Tang, Bo Yang, Donghao Zhang, Weiqiang Jia và Jianrong Tan
+## 4. Project Objectives
 
-**Tạp chí:** Knowledge-Based Systems
+- Phân tích bài toán, cơ sở lý thuyết và kiến trúc TVCFormer.
+- Khám phá dữ liệu và chuẩn bị môi trường thực nghiệm.
+- Tái thực nghiệm mô hình dựa trên mã nguồn chính thức.
+- Đánh giá hiệu quả dự báo bằng các chỉ số Mean Squared Error (MSE) và Mean Absolute Error (MAE).
+- So sánh kết quả với các mô hình liên quan như Informer và Autoformer.
+- Phân tích mở rộng trên bộ dữ liệu Exchange_rate.
 
-**Năm:** 2025
+## 5. Problem Formulation
 
-**Volume:** 314
+Cho chuỗi thời gian đa biến đầu vào:
 
-**Article:** 113147
+\[
+X \in \mathbb{R}^{C \times T_s}
+\]
 
-**DOI:** 10.1016/j.knosys.2025.113147
+Trong đó, \(C\) là số biến và \(T_s\) là độ dài chuỗi đầu vào. Mục tiêu là dự báo \(T_p\) bước thời gian tiếp theo:
 
-**Mã nguồn chính thức:** https://github.com/IFengSource/TVCFormer
+\[
+\hat{Y}=f(X;\theta), \qquad
+\hat{Y}\in\mathbb{R}^{C \times T_p}
+\]
 
-**Dataset:** https://drive.google.com/drive/folders/1ZOYpTUa82_jCcxIdTmyr0LXQfvaM9vIy
+Trong đó, \(f\) là mô hình dự báo và \(\theta\) là tập tham số cần học.
 
-## 3. MỤC TIÊU CỦA PROJECT
+TVCFormer chia chuỗi đầu vào thành các patches, xây dựng TVC Graph để mô hình hóa tương quan cục bộ, sau đó kết hợp Transformer và GNN để trích xuất đặc trưng và tạo dự báo.
 
-Project được thực hiện với các mục tiêu chính:
+## 6. Technologies
 
-1. Tìm hiểu bài toán, vai trò và các ứng dụng thực tế
-2. Đọc hiểu bài báo TVCFormer, bao gồm phát biểu bài toán, ý tưởng, đóng góp chính và phương pháp được đề xuất.
-3. Chuẩn bị, khám phá và phân tích các bộ dữ liệu được sử dụng trong thực nghiệm
-4. Tìm hiểu kiến trúc và cách hoạt động của mô hình TVCFormer
-5. Cài đặt môi trường, chạy lại mô hình và tái thực nghiệm các thiết lập phù hợp với bài báo
-6. Đánh giá kết quả dự báo bằng các chỉ số phù hợp và trực quan hóa kết quả thực nghiệm
-7. So sánh TVCFormer với một số thuật toán khác cùng giải quyết bài toán dự báo chuỗi thời gian
-8. Phân tích mở rộng để làm rõ ưu điểm, hạn chế và khả năng ứng dụng của mô hình.
+- **Programming Language:** Python
+- **Deep Learning Framework:** PyTorch
+- **Graph Learning:** Deep Graph Library (DGL)
+- **Data Processing:** NumPy, Pandas, Scikit-learn
+- **Evaluation Metrics:** MSE, MAE
 
-## 4. PHÁT BIỂU BÀI TOÁN
+## 7. Experiments and Extended Analysis
 
-Theo bài báo, multivariate time series được biểu diễn bằng ma trận
-\(Z \in \mathbb{R}^{C \times T}\), trong đó \(C\) là số biến và \(T\)
-là số bước thời gian.
+Các nội dung thực nghiệm của dự án bao gồm:
 
-Với ma trận dữ liệu lịch sử đầu vào
-\(X \in \mathbb{R}^{C \times T_s}\), TVCFormer xây dựng hàm dự báo
-\(\hat{Y}=f(X\mid\theta)\) để dự đoán chuỗi mục tiêu
-\(Y \in \mathbb{R}^{C \times T_p}\), trong đó \(T_s\) là độ dài chuỗi
-đầu vào và \(T_p\) là độ dài dự báo.
+- Khảo sát và tiền xử lý dữ liệu chuỗi thời gian đa biến.
+- Thực nghiệm dự báo trên các bộ dữ liệu được hỗ trợ bởi mã nguồn TVCFormer.
+- Đánh giá kết quả theo các prediction lengths khác nhau.
+- So sánh hiệu quả dự báo với các phương pháp liên quan.
+- Phân tích mở rộng trên **Exchange_rate** nhằm khảo sát khả năng áp dụng mô hình trên bộ dữ liệu bổ sung.
+- So sánh với 1 bài báo khác tương đương
 
-Để mô hình hóa các mối quan hệ tương quan cục bộ giữa các biến, dữ liệu
-đầu vào được chia thành các local window-level subsequences và tiếp tục
-được phân chia thành patches. Từ các subsequences này, mô hình xây dựng
-Time-Variable Coupling Correlation Graph (TVC Graph), kết hợp Graph
-Neural Network và Transformer để khai thác thông tin tương quan giữa
-các biến và temporal dependencies.
+## 8. Expected Outcomes
 
-## 5. ĐÓNG GÓP CHÍNH CỦA BÀI BÁO
+- Làm rõ nguyên lý hoạt động và kiến trúc của TVCFormer.
+- Tái thực nghiệm và đánh giá hiệu quả dự báo của mô hình.
+- Phân tích kết quả, ưu điểm và hạn chế.
+- Đề xuất các hướng phân tích mở rộng dựa trên kết quả thực nghiệm.
 
-### - Time-Variable Coupling Correlation Graph: Đề xuất **TVC Graph** để biểu diễn các local inter-variable correlation patterns trong multivariate time series. Mỗi node đại diện cho một local subsequence, giúp mô hình khai thác các mối quan hệ tương quan tại những khoảng thời gian khác nhau.
+---
 
-### - Dynamic Graph Construction: Đề xuất cơ chế xây dựng và tối ưu TVC Graph dựa trên statistical similarity, kết hợp với **Pattern Capture-Fusion Sparsification**. Cơ chế này sử dụng learnable parameters để điều chỉnh cấu trúc đồ thị phù hợp với đặc điểm dữ liệu và forecasting task.
-
-### - Time-Variable Joint-Encoding Framework: Đề xuất **Time-Variable Joint-Encoding Framework**, kết hợp Transformer và Graph Neural Network (GNN). Transformer khai thác temporal dependencies, trong khi GNN học các mối quan hệ giữa các nodes trên TVC Graph.
+*Academic project on TVCFormer reproduction, experimental evaluation, and extended analysis.*
