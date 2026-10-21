@@ -37,18 +37,18 @@ Long-Term Multivariate Time Series Forecasting (L-MTSF) là bài toán dự báo
 
 Cho chuỗi thời gian đa biến đầu vào:
 
-\[
+$$
 X \in \mathbb{R}^{C \times T_s}
-\]
+$$
 
-Trong đó, \(C\) là số biến và \(T_s\) là độ dài chuỗi đầu vào. Mục tiêu là dự báo \(T_p\) bước thời gian tiếp theo:
+Trong đó, $C$ là số biến và $T_s$ là độ dài chuỗi đầu vào. Mục tiêu là dự báo $T_p$ bước thời gian tiếp theo:
 
-\[
-\hat{Y}=f(X;\theta), \qquad
-\hat{Y}\in\mathbb{R}^{C \times T_p}
-\]
+$$
+\hat{Y} = f(X;\theta), \qquad
+\hat{Y} \in \mathbb{R}^{C \times T_p}
+$$
 
-Trong đó, \(f\) là mô hình dự báo và \(\theta\) là tập tham số cần học.
+Trong đó, $f$ là mô hình dự báo và $\theta$ là tập tham số cần học.
 
 TVCFormer chia chuỗi đầu vào thành các patches, xây dựng TVC Graph để mô hình hóa tương quan cục bộ, sau đó kết hợp Transformer và GNN để trích xuất đặc trưng và tạo dự báo.
 
