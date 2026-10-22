@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+if [ ! -d "./logs" ]; then
+    mkdir ./logs
+fi
+
+if [ ! -d "./logs/LongForecasting" ]; then
+    mkdir ./logs/LongForecasting
+fi
+
+seq_len=336
+model_name=TVCFormer
+model_id_name=TVCFormer_ETTh2
+yaml_path=configs/ETTh2.yaml
+data_name=ETTh2
+
+for pred_len in 96 192 336 720
+do
+    python -u run_TVCFormer.py \
+        --config_yaml $yaml_path \
+        --is_training 1 \
+        --model_id $model_id_name'_'$seq_len'_'$pred_len \
+        --model $model_name \
+        --data $data_name \
+        --seq_len $seq_len \
+        --pred_len $pred_len >logs/LongForecasting/$model_id_name'_'$seq_len'_'$pred_len.log
+done

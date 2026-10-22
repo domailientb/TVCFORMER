@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+checkpoints/
+
+# Generated outputs
+results/
+result.txt
+visualize_results/
+checkpoints/
+__pycache__/
+*.py[cod]
+*.npy
+*.png
