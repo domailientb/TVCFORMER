@@ -1,8 +1,8 @@
+# Chạy PatchTST trên bộ dữ liệu Exchange Rate với bốn độ dài dự báo 
 
 from pathlib import Path
 import subprocess
 import sys
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BASELINE_DIR = PROJECT_ROOT / "baselines" / "TimesNet_official"
@@ -12,14 +12,14 @@ RESULT_DIR = PROJECT_ROOT / "exchange_rate" / "results" / "PatchTST"
 SEQ_LEN = 336
 PRED_LENGTHS = [96, 192, 336, 720]
 
-
 def main():
     print("=" * 60)
     print("PatchTST - Exchange Rate")
     print("=" * 60)
 
+    # Kiểm tra thư mục mã nguồn và dữ liệu
     if not BASELINE_DIR.exists():
-        print(f"LOI: Khong tim thay baseline: {BASELINE_DIR}")
+        print(f"LỖI: Không tìm thấy baseline: {BASELINE_DIR}")
         return
 
     run_file = BASELINE_DIR / "run.py"
@@ -27,15 +27,16 @@ def main():
         run_file = BASELINE_DIR / "run_longExp.py"
 
     if not run_file.exists():
-        print("LOI: Khong tim thay run.py hoac run_longExp.py.")
+        print("LỖI: Không tìm thấy run.py hoặc run_longExp.py.")
         return
 
     if not DATASET_FILE.exists():
-        print(f"LOI: Khong tim thay du lieu: {DATASET_FILE}")
+        print(f"LỖI: Không tìm thấy dữ liệu: {DATASET_FILE}")
         return
 
     RESULT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Chạy PatchTST lần lượt với từng độ dài dự báo
     for pred_len in PRED_LENGTHS:
         model_id = f"PatchTST_Exchange_Rate_{SEQ_LEN}_{pred_len}"
 
@@ -67,11 +68,11 @@ def main():
         ]
 
         log_file = RESULT_DIR / f"PatchTST_pred{pred_len}.log"
-
         print("\n" + "=" * 60)
-        print(f"Bat dau PatchTST - pred_len={pred_len}")
+        print(f"Bắt đầu PatchTST - pred_len={pred_len}")
         print("=" * 60)
 
+        # Lưu đầu ra và thông báo lỗi vào log để tiện kiểm tra
         with open(log_file, "w", encoding="utf-8") as log:
             result = subprocess.run(
                 command,
@@ -80,17 +81,15 @@ def main():
                 stderr=subprocess.STDOUT,
                 text=True,
             )
-
         if result.returncode != 0:
-            print(f"LOI khi chay pred_len={pred_len}.")
-            print(f"Kiem tra log: {log_file}")
+            print(f"LỖI khi chạy pred_len={pred_len}.")
+            print(f"Kiểm tra log: {log_file}")
             return
 
-        print(f"Da chay xong pred_len={pred_len}.")
+        print(f"Đã chạy xong pred_len={pred_len}.")
         print(f"Log: {log_file}")
-
-    print("\nDa chay xong ca 4 cau hinh PatchTST.")
-    print(f"Log nam tai: {RESULT_DIR}")
+    print("\nĐã chạy xong cả 4 cấu hình PatchTST.")
+    print(f"Log nằm tại: {RESULT_DIR}")
 
 
 if __name__ == "__main__":

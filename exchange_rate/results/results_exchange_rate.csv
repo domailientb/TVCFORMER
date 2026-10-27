@@ -3,3 +3,15 @@ TVCFormer, Exchange_Rate,     336,       96, 0.098434, 0.220641
 TVCFormer, Exchange_Rate,     336,      192, 0.194259, 0.314162
 TVCFormer, Exchange_Rate,     336,      336, 0.364840, 0.441006
 TVCFormer, Exchange_Rate,     336,      720, 0.907164, 0.707640
+TimesNet , Exchange_Rate,     336,       96, 0.198379, 0.331759
+TimesNet , Exchange_Rate,     336,      192, 0.297320, 0.407042
+TimesNet , Exchange_Rate,     336,      336, 0.492409, 0.536954
+TimesNet , Exchange_Rate,     336,      720, 1.404844, 0.919538
+DLinear  , Exchange_Rate,     336,       96, 0.098984, 0.235019
+DLinear  , Exchange_Rate,     336,      192, 0.194824, 0.334455
+DLinear  , Exchange_Rate,     336,      336, 0.380295, 0.474126
+DLinear  , Exchange_Rate,     336,      720, 1.119548, 0.804560
+PatchTST , Exchange_Rate,     336,       96, 0.102652, 0.226980
+PatchTST , Exchange_Rate,     336,      192, 0.265432, 0.371278
+PatchTST , Exchange_Rate,     336,      336, 0.328689, 0.419609
+PatchTST , Exchange_Rate,     336,      720, 0.826570, 0.665264

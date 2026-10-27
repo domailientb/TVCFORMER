@@ -1,4 +1,4 @@
-
+# Chạy thực nghiệm TimesNet trên Exchange Rate
 from pathlib import Path
 import csv
 import re
@@ -6,13 +6,10 @@ import shutil
 import subprocess
 import sys
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-
 TIMESNET_DIR = PROJECT_ROOT / "baselines" / "TimesNet_official"
 DATASET_DIR = PROJECT_ROOT / "experiments" / "datasets"
 DATASET_FILE = DATASET_DIR / "exchange_rate.csv"
-
 RESULTS_DIR = PROJECT_ROOT / "exchange_rate" / "results" / "TimesNet"
 RESULTS_CSV = RESULTS_DIR / "results_timesnet.csv"
 
@@ -20,25 +17,24 @@ SEQ_LEN = 336
 LABEL_LEN = 48
 PRED_LENGTHS = [720]
 
-# Cấu hình TimesNet phù hợp để bắt đầu thực nghiệm trên GPU 4 GB.
+# Cấu hình thực nghiệm, hướng đến giới hạn GPU 4 GB
 BATCH_SIZE = 32
 TRAIN_EPOCHS = 100
 PATIENCE = 5
 
 
 def save_metrics(pred_len, mse, mae):
-    """Lưu hoặc cập nhật kết quả MSE, MAE vào file CSV."""
+    """Lưu hoặc cập nhật MSE, MAE vào file CSV."""
     rows = []
 
     if RESULTS_CSV.exists():
         with RESULTS_CSV.open("r", newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
-            fieldnames = reader.fieldnames or []
             rows = list(reader)
 
     fieldnames = ["Model", "Seq_len", "Pred_len", "MSE", "MAE"]
 
-    # Nếu chạy lại cùng pred_len thì cập nhật kết quả cũ.
+    # Loại bỏ kết quả cũ của cùng cấu hình trước khi cập nhật
     rows = [
         row for row in rows
         if not (
@@ -67,7 +63,7 @@ def save_metrics(pred_len, mse, mae):
 
 
 def extract_metrics(log_text):
-    """Lấy MSE và MAE từ dòng kết quả cuối cùng trong log."""
+    """Trích xuất MSE và MAE từ log thực nghiệm."""
     matches = re.findall(
         r"mse\s*:\s*([0-9.eE+-]+)\s*,\s*mae\s*:\s*([0-9.eE+-]+)",
         log_text,
@@ -77,23 +73,25 @@ def extract_metrics(log_text):
     if not matches:
         return None, None
 
+    # Lấy kết quả xuất hiện cuối cùng trong log
     mse, mae = matches[-1]
     return float(mse), float(mae)
 
 
 def main():
+    # Kiểm tra dữ liệu và mã nguồn trước khi chạy
     if not DATASET_FILE.exists():
         raise FileNotFoundError(
             f"Không tìm thấy dataset: {DATASET_FILE}"
         )
-
+        
     if not (TIMESNET_DIR / "run.py").exists():
         raise FileNotFoundError(
             f"Không tìm thấy run.py trong {TIMESNET_DIR}"
         )
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-
+    
     for pred_len in PRED_LENGTHS:
         model_id = f"TimesNet_ExchangeRate_{SEQ_LEN}_{pred_len}"
 
@@ -133,9 +131,8 @@ def main():
         print(f"TimesNet - Exchange Rate - pred_len={pred_len}")
         print("=" * 60)
 
-        # Lưu log để có thể trích xuất MSE, MAE sau khi chạy xong.
+        # Ghi toàn bộ đầu ra vào log để trích xuất chỉ số sau khi chạy
         log_file = RESULTS_DIR / f"log_pred_len_{pred_len}.txt"
-
         with log_file.open("w", encoding="utf-8") as log:
             process = subprocess.run(
                 command,
@@ -147,7 +144,6 @@ def main():
             )
 
         print(f"Log đã lưu tại: {log_file}")
-
         if process.returncode != 0:
             print(
                 f"Lần chạy pred_len={pred_len} thất bại "
@@ -166,12 +162,10 @@ def main():
             )
             print("Kiểm tra định dạng dòng kết quả trong file log.")
             continue
-
         save_metrics(pred_len, mse, mae)
-
-        # Gom các kết quả test của cấu hình vừa chạy.
+        
+        # Sao chép kết quả test của cấu hình vừa chạy về thư mục dự án
         test_dir = TIMESNET_DIR / "test_results"
-
         if test_dir.exists():
             matched_dirs = [
                 path for path in test_dir.iterdir()
@@ -183,15 +177,13 @@ def main():
 
                 if destination.exists():
                     shutil.rmtree(destination)
-
+                    
                 shutil.copytree(source, destination)
                 print(f"Đã sao chép kết quả test: {destination}")
-
         print(
             f"Hoàn thành pred_len={pred_len}: "
             f"MSE={mse:.6f}, MAE={mae:.6f}"
         )
-
     print("=" * 60)
     print(f"Thư mục kết quả: {RESULTS_DIR}")
     print(f"File CSV: {RESULTS_CSV}")

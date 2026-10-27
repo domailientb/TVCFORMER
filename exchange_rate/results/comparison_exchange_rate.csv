@@ -1,0 +1,9 @@
+﻿Pred_len, Metric, Num_models, Rank_1_Model, Rank_1_Value, Rank_2_Model, Rank_2_Value, Rank_3_Model, Rank_3_Value, Rank_4_Model, Rank_4_Value, Best_model, Best_value
+      96, MSE   ,          4, TVCFormer   ,     0.098434, DLinear     ,     0.098984, PatchTST    ,     0.102652, TimesNet    ,     0.198379, TVCFormer ,   0.098434
+      96, MAE   ,          4, TVCFormer   ,     0.220641, PatchTST    ,     0.226980, DLinear     ,     0.235019, TimesNet    ,     0.331759, TVCFormer ,   0.220641
+     192, MSE   ,          4, TVCFormer   ,     0.194259, DLinear     ,     0.194824, PatchTST    ,     0.265432, TimesNet    ,     0.297320, TVCFormer ,   0.194259
+     192, MAE   ,          4, TVCFormer   ,     0.314162, DLinear     ,     0.334455, PatchTST    ,     0.371278, TimesNet    ,     0.407042, TVCFormer ,   0.314162
+     336, MSE   ,          4, PatchTST    ,     0.328689, TVCFormer   ,     0.364840, DLinear     ,     0.380295, TimesNet    ,     0.492409, PatchTST  ,   0.328689
+     336, MAE   ,          4, PatchTST    ,     0.419609, TVCFormer   ,     0.441006, DLinear     ,     0.474126, TimesNet    ,     0.536954, PatchTST  ,   0.419609
+     720, MSE   ,          4, PatchTST    ,     0.826570, TVCFormer   ,     0.907164, DLinear     ,     1.119548, TimesNet    ,     1.404844, PatchTST  ,   0.826570
+     720, MAE   ,          4, PatchTST    ,     0.665264, TVCFormer   ,     0.707640, DLinear     ,     0.804560, TimesNet    ,     0.919538, PatchTST  ,   0.665264
