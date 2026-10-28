@@ -1,4 +1,4 @@
-
+# Thực no ETTm2
 from pathlib import Path
 import subprocess
 import sys
@@ -9,7 +9,7 @@ OFFICIAL_DIR = PROJECT_ROOT / "official"
 
 DATASET_DIR = PROJECT_ROOT / "experiments" / "datasets" / "ETT-small"
 DATASET_FILE = DATASET_DIR / "ETTm2.csv"
-CONFIG_FILE = OFFICIAL_DIR / "configs" / "ETTm2.yaml"
+CONFIG_FILE = PROJECT_ROOT / "experiments" / "configs" / "ETTm2.yaml"
 
 
 def main():

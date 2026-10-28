@@ -1,9 +1,7 @@
-
+# vẽ biểu đồ so sánh MSE và MAE giữa các mô hình
 from pathlib import Path
-
 import pandas as pd
 import matplotlib.pyplot as plt
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_DIR = PROJECT_ROOT / "experiments" / "results"
@@ -12,7 +10,7 @@ FIGURES_DIR = PROJECT_ROOT / "experiments" / "figures" / "benchmark"
 
 METRICS = ["MSE", "MAE"]
 
-
+# đọc và ktra dl
 def main():
     if not BENCHMARK_FILE.exists():
         raise FileNotFoundError(
@@ -22,7 +20,7 @@ def main():
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(BENCHMARK_FILE)
-
+    # Kiểm tra các cột cần thiết cho việc so sánh mô hình.
     required_columns = {
         "Dataset", "Pred_len", "Model", "MSE", "MAE"
     }
@@ -36,6 +34,7 @@ def main():
     for metric in METRICS:
         df[metric] = pd.to_numeric(df[metric], errors="raise")
 
+    # thống kê benchmark
     methods = sorted(df["Model"].dropna().unique())
 
     print("Datasets:", sorted(df["Dataset"].unique()))
@@ -43,10 +42,12 @@ def main():
     print("Number of methods:", len(methods))
     print("Rows:", len(df))
 
+    # so sáh các mô hình theo từng dataset
     for dataset in sorted(df["Dataset"].unique()):
         dataset_df = df[df["Dataset"] == dataset].copy()
 
         for metric in METRICS:
+             # Chuyển dữ liệu thành bảng: hàng là Pred_len, cột là Model
             pivot = dataset_df.pivot(
                 index="Pred_len",
                 columns="Model",

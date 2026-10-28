@@ -1,30 +1,26 @@
+# vẽ 3 biểu đồ so sánh MSE, MAE, RSE
 from pathlib import Path
-
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
-# Xác định thư mục gốc của dự án
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
 CSV_FILE = (
     PROJECT_ROOT
     / "experiments"
     / "results"
     / "reproduction_results.csv"
 )
-
 FIGURES_DIR = PROJECT_ROOT / "experiments" / "figures"
 
-
+# vẽ biều đồ so sáh 
 def plot_metric(data, metric, title, ylabel, output_file):
     """Vẽ biểu đồ so sánh một chỉ số giữa các bộ dữ liệu."""
 
     plt.figure(figsize=(9, 6))
 
     for dataset in data["Dataset"].unique():
+        # Sắp xếp theo độ dài dự báo để các điểm nối đúng thứ tự
         subset = data[data["Dataset"] == dataset].sort_values("Pred_len")
-
         plt.plot(
             subset["Pred_len"],
             subset[metric],
@@ -45,18 +41,17 @@ def plot_metric(data, metric, title, ylabel, output_file):
     output_path = FIGURES_DIR / output_file
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close()
-
     print(f"Đã lưu biểu đồ: {output_path}")
 
-
+# đọc và ktra kq
 def main():
     if not CSV_FILE.exists():
         raise FileNotFoundError(
             f"Không tìm thấy file kết quả: {CSV_FILE}"
         )
 
+    # tạo thư mục lưu ảnh và đọc dl
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
-
     data = pd.read_csv(CSV_FILE, skipinitialspace=True)
 
     # Loại bỏ khoảng trắng thừa trong tên cột và dữ liệu dạng chuỗi
@@ -65,6 +60,7 @@ def main():
     for column in data.select_dtypes(include=["object"]).columns:
         data[column] = data[column].str.strip()
 
+    # kiểm tra các cột cần thiết
     required_columns = {
         "Dataset",
         "Pred_len",
@@ -74,7 +70,6 @@ def main():
     }
 
     missing_columns = required_columns - set(data.columns)
-
     if missing_columns:
         raise ValueError(
             f"CSV thiếu các cột: {sorted(missing_columns)}"
@@ -83,6 +78,7 @@ def main():
     print(f"Đã đọc {len(data)} dòng kết quả.")
     print("Các bộ dữ liệu:", ", ".join(data["Dataset"].unique()))
 
+    # vẽ MSE
     plot_metric(
         data,
         metric="MSE",
@@ -90,7 +86,7 @@ def main():
         ylabel="MSE",
         output_file="comparison_mse.png",
     )
-
+    # MAE
     plot_metric(
         data,
         metric="MAE",
@@ -98,7 +94,7 @@ def main():
         ylabel="MAE",
         output_file="comparison_mae.png",
     )
-
+    # RSE
     plot_metric(
         data,
         metric="RSE",

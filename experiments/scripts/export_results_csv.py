@@ -1,10 +1,11 @@
-
+# lưu kq TVCFormer
 from pathlib import Path
 import csv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 OUTPUT_FILE = PROJECT_ROOT / "experiments" / "results" / "reproduction_results.csv"
 
+# Mỗi dòng gồm: Pred_len, MSE, MAE, RSE
 RESULTS = {
     "ETTh1": [
         (96, 0.36449319, 0.39083716, 0.57247978),

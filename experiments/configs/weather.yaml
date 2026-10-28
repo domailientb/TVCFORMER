@@ -1,0 +1,34 @@
+# dataset
+root_path: 'datasets/Customs'
+data_path: 'weather.csv'
+scale: True
+traget: 'OT'
+
+# model
+model: 'TVCFormer'
+e_layers: 2
+d_layers: 1
+enc_in: 21
+patch_len: 24
+stride: 12
+time_node_num: 7
+gnn_r_degree: 1
+affine: False
+
+# train
+itr: 1
+batch_size: 128
+patience: 5
+train_epochs: 100
+checkpoints: "checkpoints/Customs/weather"
+
+# adjust
+d_model: 64
+n_heads: 16
+d_ff: 256
+learning_rate: 0.001
+dropout: 0.2
+gnn_hidden_size: 64
+graph_conv_hidden_size: 8
+graph_conv_kernel_size: 3
+subgraph_keep_rate: 0.3

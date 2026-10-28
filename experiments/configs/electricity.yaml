@@ -1,0 +1,35 @@
+
+# Dataset
+root_path: 'datasets/Customs'
+data_path: 'electricity.csv'
+scale: True
+target: 'OT'
+
+# Model
+model: 'TVCFormer'
+e_layers: 1
+d_layers: 1
+enc_in: 321
+patch_len: 12
+stride: 6
+time_node_num: 7
+gnn_r_degree: 1
+affine: False
+
+# Training
+itr: 1
+batch_size: 1
+patience: 2
+train_epochs: 3
+checkpoints: "checkpoints/Customs/electricity_exploratory"
+
+# Reduced model size for limited GPU memory
+d_model: 16
+n_heads: 4
+d_ff: 64
+learning_rate: 0.0005
+dropout: 0.2
+gnn_hidden_size: 16
+graph_conv_hidden_size: 4
+graph_conv_kernel_size: 5
+subgraph_keep_rate: 0.01

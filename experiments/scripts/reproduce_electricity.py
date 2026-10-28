@@ -1,4 +1,4 @@
-
+# Thực no Electricity
 from pathlib import Path
 import subprocess
 import sys
@@ -12,12 +12,13 @@ DATASET_FILE = DATASET_DIR / "electricity.csv"
 CONFIG_FILE = PROJECT_ROOT / "experiments" / "configs" / "electricity.yaml"
 
 SEQ_LEN = 336
-PRED_LENGTHS = [96, 192, 336, 720]
+
+PRED_LENGTHS = [96]
 
 
 def main():
     print("=" * 65)
-    print("TVCFormer Reproduction - Electricity")
+    print("TVCFormer Exploratory Experiment - Electricity")
     print("=" * 65)
     print(f"Project root : {PROJECT_ROOT}")
     print(f"Official code: {OFFICIAL_DIR}")
@@ -54,6 +55,8 @@ def main():
             "--pred_len", str(pred_len),
             "--root_path", str(DATASET_DIR),
             "--data_path", DATASET_FILE.name,
+            "--target", "OT",
+            "--use_amp", "False",
         ]
 
         print()
@@ -65,6 +68,7 @@ def main():
         try:
             subprocess.run(command, cwd=OFFICIAL_DIR, check=True)
 
+    # xly khi huấn luyện thất bại
         except subprocess.CalledProcessError as error:
             print(
                 f"ERROR: Training failed for pred_len={pred_len}, "
@@ -78,7 +82,7 @@ def main():
 
     print()
     print("=" * 65)
-    print("All Electricity prediction lengths completed.")
+    print("Electricity exploratory experiment completed.")
     print("=" * 65)
 
     return 0

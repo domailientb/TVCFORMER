@@ -1,21 +1,18 @@
+# tái thực nghiệm mô hình TimesNet trên bộ dữ liệu ETTh1
 from pathlib import Path
 import os
 import subprocess
 import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
 TIMESNET_DIR = PROJECT_ROOT / "baselines" / "TimesNet_official"
-
 DATASET_DIR = (
     PROJECT_ROOT
     / "experiments"
     / "datasets"
     / "ETT-small"
 )
-
 DATASET_FILE = DATASET_DIR / "ETTh1.csv"
-
 RESULT_DIR = (
     PROJECT_ROOT
     / "experiments"
@@ -24,20 +21,15 @@ RESULT_DIR = (
     / "ETTh1"
 )
 
-
 SEQ_LEN = 96
 LABEL_LEN = 48
-
 PRED_LENGTHS = [192, 336, 720]
-
 RANDOM_SEED = 2021
-
 TRAIN_EPOCHS = 10
 BATCH_SIZE = 32
 LEARNING_RATE = 0.0001
 PATIENCE = 3
 NUM_WORKERS = 0
-
 
 def main():
     print("=" * 65)
@@ -52,7 +44,7 @@ def main():
     print(f"Random seed  : {RANDOM_SEED}")
     print()
 
-
+    # Kiểm tra mã nguồn và dữ liệu trước khi chạy
     if not TIMESNET_DIR.exists():
         print(f"ERROR: TimesNet directory not found: {TIMESNET_DIR}")
         return
@@ -67,10 +59,12 @@ def main():
 
     RESULT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Thiết lập môi trường để log hỗ trợ UTF-8
     env = os.environ.copy()
     env["PYTHONIOENCODING"] = "utf-8"
     env["PYTHONUTF8"] = "1"
 
+    # Chạy TimesNet lần lượt với từng độ dài dự báo
     for pred_len in PRED_LENGTHS:
         model_id = f"ETTh1_{SEQ_LEN}_{pred_len}"
 
@@ -121,6 +115,7 @@ def main():
         print("=" * 65)
         print()
 
+        # Lưu toàn bộ đầu ra và lỗi vào file log
         try:
             with open(log_file, "w", encoding="utf-8") as log:
                 subprocess.run(
@@ -142,6 +137,7 @@ def main():
             print(f"Check log: {log_file}")
             print()
 
+            # Hiển thị 40 dòng cuối để hỗ trợ kiểm tra lỗi
             if log_file.exists():
                 with open(
                     log_file,
@@ -160,7 +156,6 @@ def main():
     print("ALL EXPERIMENTS COMPLETED")
     print(f"Results directory: {RESULT_DIR}")
     print("=" * 65)
-
 
 if __name__ == "__main__":
     main()

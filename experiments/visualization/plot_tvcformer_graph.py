@@ -1,4 +1,4 @@
-
+# trực quan hóa TVC Graph
 from pathlib import Path
 import argparse
 import re
@@ -20,6 +20,7 @@ CHECKPOINT_DIR = OFFICIAL_DIR / "checkpoints"
 DATA_ROOT = PROJECT_ROOT / "experiments" / "datasets"
 OUTPUT_ROOT = PROJECT_ROOT / "experiments" / "figures" / "graph"
 
+# Ánh xạ tên dataset với file cấu hình YAML tương ứng
 CONFIG_NAMES = {
     "ETTh1": "ETTh1.yaml",
     "ETTh2": "ETTh2.yaml",
@@ -29,7 +30,7 @@ CONFIG_NAMES = {
     "electricity": "electricity.yaml",
 }
 
-
+# đọc tham số đầu vào 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Visualize saved TVCFormer graph matrices."
@@ -49,15 +50,15 @@ def parse_args():
     parser.add_argument("--samples", type=int, default=3)
     return parser.parse_args()
 
-
-def find_dataset_file(dataset_name):
+# tìm dữ liệu và checkpoint
+def find_dataset_file(dataset_name):  # dn hàm tìm file
     candidates = list(DATA_ROOT.rglob(f"{dataset_name}.csv"))
     candidates += list(
         (OFFICIAL_DIR / "datasets").rglob(f"{dataset_name}.csv")
     ) if (OFFICIAL_DIR / "datasets").is_dir() else []
 
     candidates = list({p.resolve() for p in candidates if p.is_file()})
-
+    # Ưu tiên dataset nằm trong thư mục experiments/datasets
     preferred = [
         p for p in candidates
         if (PROJECT_ROOT / "experiments" / "datasets").resolve()
@@ -71,21 +72,21 @@ def find_dataset_file(dataset_name):
             f"Multiple dataset files found for {dataset_name}:\n"
             + "\n".join(map(str, preferred))
         )
-    if len(candidates) == 1:
+    if len(candidates) == 1: # nếu 0 có file ưu tiên nhưg kq sd 1 file, thì sd file đó
         return candidates[0]
-
+    
     if not candidates:
         raise FileNotFoundError(
             f"Cannot find {dataset_name}.csv under experiments/datasets "
             "or official/datasets."
         )
 
-    raise RuntimeError(
+    raise RuntimeError(  # lỗi khi nh file nhưg 0 thể lựa chọn duy nhất
         f"Multiple dataset files found for {dataset_name}:\n"
         + "\n".join(map(str, candidates))
     )
 
-
+#tìm mô hình đã huấn luyện
 def find_checkpoint(dataset_name, seq_len, pred_len):
     pattern = (
         f"TVCFormer_{dataset_name}_{seq_len}_{pred_len}_*"
@@ -93,9 +94,9 @@ def find_checkpoint(dataset_name, seq_len, pred_len):
     matches = list(CHECKPOINT_DIR.rglob(pattern))
     matches = [
         p for p in matches
-        if p.is_dir() and (p / "checkpoint.pth").is_file()
+        if p.is_dir() and (p / "checkpoint.pth").is_file() #ktra trog file có trọg số checkpoint hay 0
     ]
-
+    # tiếp tục khi tìm được đúng một checkpoint phù hợp
     if len(matches) != 1:
         if not matches:
             raise FileNotFoundError(
@@ -109,9 +110,10 @@ def find_checkpoint(dataset_name, seq_len, pred_len):
 
     return matches[0]
 
-
+# khôi phục siêu tham số
 def recover_hyperparameters(setting):
     values = {}
+     # Đọc các siêu tham số được mã hóa trong tên thư mục checkpoint
     for part in setting.split("_"):
         if part.startswith("dm"):
             values["d_model"] = part[2:]
@@ -134,7 +136,7 @@ def recover_hyperparameters(setting):
 
     return values
 
-
+#cbi các đg dẫn
 def build_paths(args):
     dataset_file = find_dataset_file(args.dataset)
     config_file = CONFIG_DIR / CONFIG_NAMES[args.dataset]
@@ -163,11 +165,11 @@ def build_paths(args):
         "official_output": official_output,
     }
 
-
+# chạy trực quan hóa chính thức
 def run_official_visualization(args, paths):
     official_output = paths["official_output"]
 
-    # Remove only the official visualization for this exact checkpoint.
+    # Xóa kết quả trực quan hóa cũ của đúng checkpoint này
     if official_output.exists():
         shutil.rmtree(official_output)
 
@@ -186,7 +188,7 @@ def run_official_visualization(args, paths):
         "--seq_len", str(args.seq_len),
         "--pred_len", str(args.pred_len),
     ]
-
+    # Truyền lại các siêu tham số lấy từ tên checkpoint
     for key, value in recover_hyperparameters(
         paths["setting"]
     ).items():
@@ -195,7 +197,7 @@ def run_official_visualization(args, paths):
     print("Running official visualization:")
     print(subprocess.list2cmdline(command))
     print()
-
+    # Chạy trong thư mục official để sử dụng đúng cấu trúc dự án
     subprocess.run(command, cwd=OFFICIAL_DIR, check=True)
 
     if not official_output.is_dir():
@@ -203,16 +205,17 @@ def run_official_visualization(args, paths):
             f"Official visualization output not found:\n{official_output}"
         )
 
-
+# kq
 def collect_outputs(paths):
     output_dir = paths["output_dir"]
     official_output = paths["official_output"]
 
-    # Clear only this dataset/horizon's destination.
+    # Chỉ xóa thư mục kết quả của dataset và pred_len đang chạy
     if output_dir.exists():
         shutil.rmtree(output_dir)
 
     copied_files = 0
+    #sao chép
     for source in official_output.rglob("*"):
         if not source.is_file():
             continue
@@ -222,16 +225,17 @@ def collect_outputs(paths):
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
         copied_files += 1
-
+        
     if copied_files == 0:
         raise RuntimeError("Official visualization generated no files.")
 
     print(f"Copied {copied_files} files into:\n{output_dir}")
 
-
+# vẽ ma trận TVC Graph
 def plot_graph_matrix(graph_matrix, sample_index, output_dir):
     graph_matrix = np.asarray(graph_matrix).squeeze()
-
+    
+    # Ma trận đồ thị phải là ma trận vuông
     if (
         graph_matrix.ndim != 2
         or graph_matrix.shape[0] != graph_matrix.shape[1]
@@ -239,7 +243,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
         raise ValueError(
             f"Expected a square graph matrix, got {graph_matrix.shape}"
         )
-
+    # Không vẽ nếu ma trận chứa NaN hoặc vô cực
     if not np.isfinite(graph_matrix).all():
         raise ValueError(
             f"Graph matrix {sample_index} contains NaN or infinity."
@@ -252,7 +256,8 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
     vmax = float(np.max(graph_matrix))
     if vmax == vmin:
         vmax = vmin + 1.0
-
+        
+    # Mỗi ô biểu diễn trọng số liên kết giữa một cặp nút
     image = ax.imshow(
         graph_matrix,
         cmap="Blues",
@@ -262,6 +267,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
         vmax=vmax,
     )
 
+     # Thêm đường lưới phân tách các ô của ma trận
     ax.set_xticks(np.arange(-0.5, node_count, 1), minor=True)
     ax.set_yticks(np.arange(-0.5, node_count, 1), minor=True)
     ax.grid(which="minor", color="#9AAFC2", linewidth=0.3, alpha=0.9)
@@ -290,6 +296,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
         ax.set_ylabel("Source node")
 
     ax.set_title(f"TVCFormer Graph A: {sample_index}", fontsize=14, pad=12)
+    # thanh màu of gtri trọg số cạh
     fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04).set_label(
         "Edge weight"
     )
@@ -305,7 +312,7 @@ def plot_graph_matrix(graph_matrix, sample_index, output_dir):
     plt.close(fig)
     print(f"Updated graph image: {image_path}")
 
-
+# đọc ma trận và vẽ
 def redraw_graph_images(paths):
     graph_dir = paths["graph_dir"]
     if not graph_dir.is_dir():

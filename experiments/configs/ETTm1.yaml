@@ -15,7 +15,26 @@ time_node_num: 7
 gnn_r_degree: 1
 affine: False
 
+
+# dataset
+root_path: 'datasets/Ett_Series'
+data_path: 'ETTm1.csv'
+scale: True
+target: 'OT'
+
+# model
+model: 'TVCFormer'
+e_layers: 2
+d_layers: 1
+enc_in: 7
+patch_len: 12
+stride: 6
+time_node_num: 7
+gnn_r_degree: 1
+affine: False
+
 # train
+use_gpu: True
 itr: 1
 batch_size: 128
 patience: 10

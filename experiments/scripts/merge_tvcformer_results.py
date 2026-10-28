@@ -1,17 +1,15 @@
- 
+ # gộp các kq 
 from pathlib import Path
 import pandas as pd
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-
 RESULTS_FILE = (
     PROJECT_ROOT
     / "experiments"
     / "results"
     / "benchmark_results.csv"
 )
-
 
 TVCFORMER_RESULTS = [
     ["ETTh1", 96,  "TVCFormer", 0.36449319,  0.39083716, 336],
@@ -40,7 +38,7 @@ TVCFORMER_RESULTS = [
     ["Weather", 720, "TVCFormer", 0.31443340, 0.33348766, 336],
 ]
 
-
+# đọc và ktra
 def main():
     if not RESULTS_FILE.exists():
         raise FileNotFoundError(

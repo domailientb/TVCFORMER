@@ -1,23 +1,22 @@
-
+# tái thực nghiệm mô hình DLinear trên bộ dữ liệu ETTh1
 from pathlib import Path
 import subprocess
 import sys
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
 DLINEAR_DIR = PROJECT_ROOT / "baselines" / "DLinear_official"
 DATA_DIR = PROJECT_ROOT / "experiments" / "datasets" / "ETT-small"
 DATA_FILE = DATA_DIR / "ETTh1.csv"
 
 PRED_LENGTHS = [96, 192, 336, 720]
 
-
 def main():
-    if not (DLINEAR_DIR / "run_longExp.py").exists():
+    run_file = DLINEAR_DIR / "run_longExp.py"
+
+    # Kiểm tra mã nguồn và dữ liệu trước khi chạy
+    if not run_file.exists():
         raise FileNotFoundError(
-            f"Không tìm thấy mã DLinear chính thức: "
-            f"{DLINEAR_DIR / 'run_longExp.py'}"
+            f"Không tìm thấy mã DLinear chính thức: {run_file}"
         )
 
     if not DATA_FILE.exists():
@@ -32,6 +31,7 @@ def main():
     print(f"Dataset: {DATA_FILE}")
     print(f"Prediction lengths: {PRED_LENGTHS}")
 
+    # Chạy DLinear lần lượt với từng độ dài dự báo
     for pred_len in PRED_LENGTHS:
         model_id = f"DLinear_ETTh1_336_{pred_len}"
 
@@ -62,6 +62,7 @@ def main():
         print(f"Running DLinear: pred_len={pred_len}")
         print("=" * 65)
 
+        # Dừng chương trình nếu một lần chạy thất bại
         subprocess.run(
             command,
             cwd=DLINEAR_DIR,
@@ -69,7 +70,6 @@ def main():
         )
 
     print("\nĐã chạy xong cả bốn prediction lengths.")
-
 
 if __name__ == "__main__":
     main()

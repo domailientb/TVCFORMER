@@ -1,8 +1,7 @@
-
+# Thực no ETTh1
 from pathlib import Path
 import subprocess
 import sys
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 OFFICIAL_DIR = PROJECT_ROOT / "official"
@@ -33,9 +32,11 @@ def main():
 
     pred_lengths = [96, 192, 336, 720]
 
+    # lần lượt chạy vs từg độ dài dự báo
     for pred_len in pred_lengths:
-        model_id = f"TVCFormer_ETTh1_336_{pred_len}"
+        model_id = f"TVCFormer_ETTh1_336_{pred_len}" # tạo tên địh dah riêg cho mỗi lần chạy
 
+        # tạo danh sách đối số để chạy file run_TVCFormer.py
         command = [
             sys.executable,
             "run_TVCFormer.py",

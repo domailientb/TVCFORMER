@@ -1,3 +1,4 @@
+# # Thực no Weather
 from pathlib import Path
 import subprocess
 import sys
@@ -8,7 +9,7 @@ OFFICIAL_DIR = PROJECT_ROOT / "official"
 
 DATASET_DIR = PROJECT_ROOT / "experiments" / "datasets"
 DATASET_FILE = DATASET_DIR / "weather.csv"
-CONFIG_FILE = OFFICIAL_DIR / "configs" / "weather.yaml"
+CONFIG_FILE = PROJECT_ROOT / "experiments" / "configs" / "weather.yaml"
 
 
 def main():

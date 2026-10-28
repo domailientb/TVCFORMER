@@ -1,24 +1,15 @@
-
+# khám phá dữ liệu
 from pathlib import Path
-
 import matplotlib
 matplotlib.use("Agg")
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-
-# Thư mục gốc của dự án
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-# Thư mục chứa dữ liệu CSV
 DATASETS_ROOT = PROJECT_ROOT / "experiments" / "datasets"
-
-# Thư mục lưu các biểu đồ
 OUTPUT_ROOT = PROJECT_ROOT / "experiments" / "figures"
 
-# Tên bộ dữ liệu và tên tệp CSV tương ứng
 DATASETS = {
     "ETTh1": "ETTh1.csv",
     "ETTh2": "ETTh2.csv",
@@ -28,7 +19,7 @@ DATASETS = {
     "Weather": "weather.csv",
 }
 
-
+# tìm và đọc dl
 def find_dataset(filename):
     """Tìm tệp CSV trong thư mục dữ liệu của dự án."""
     matches = sorted(
@@ -41,10 +32,10 @@ def find_dataset(filename):
         return None
 
     if len(matches) > 1:
-        print(f"Cảnh báo: Tìm thấy nhiều tệp tên {filename}:")
+        print(f"Tìm thấy nhiều tệp tên {filename}:")
         for path in matches:
             print(f"  - {path}")
-        print("Hãy kiểm tra để bảo đảm đang dùng đúng dữ liệu.")
+        print("kiểm tra để bảo đảm đang dùng đúng dữ liệu.")
 
     return matches[0]
 
@@ -58,7 +49,7 @@ def load_dataset(dataset_name, dataset_file):
 
     if df.empty:
         raise ValueError("Tệp CSV không có dữ liệu.")
-
+     # Chỉ giữ các biến dạng số phục vụ phân tích và trực quan hóa.
     numeric_df = df.select_dtypes(include="number")
     numeric_df = numeric_df.dropna(axis=1, how="all")
 
@@ -71,7 +62,7 @@ def load_dataset(dataset_name, dataset_file):
 
     return numeric_df
 
-
+# otich tươg quan giữa các biến
 def plot_correlation(numeric_df, dataset_name, output_dir):
     """Vẽ ma trận tương quan Pearson giữa các biến."""
     correlation = numeric_df.corr(method="pearson")
@@ -104,7 +95,7 @@ def plot_correlation(numeric_df, dataset_name, output_dir):
 
     print(f"Đã lưu biểu đồ: {output_file}")
 
-
+# ptich phân phối dl
 def plot_distribution(numeric_df, dataset_name, output_dir):
     """Vẽ biểu đồ phân phối giá trị cho các biến."""
     columns = numeric_df.columns.tolist()
@@ -151,7 +142,7 @@ def plot_distribution(numeric_df, dataset_name, output_dir):
 
         print(f"Đã lưu biểu đồ: {output_file}")
 
-
+# trực quan hóa chuỗi tgian
 def plot_time_series(numeric_df, dataset_name, output_dir):
     """Vẽ diễn biến theo thời gian của tối đa bốn biến đầu tiên."""
     columns = numeric_df.columns[:4]
@@ -183,7 +174,7 @@ def plot_time_series(numeric_df, dataset_name, output_dir):
 
     print(f"Đã lưu biểu đồ: {output_file}")
 
-
+# xử lý bộ dl
 def process_dataset(dataset_name, filename):
     """Xử lý và vẽ biểu đồ cho một bộ dữ liệu."""
     dataset_file = find_dataset(filename)

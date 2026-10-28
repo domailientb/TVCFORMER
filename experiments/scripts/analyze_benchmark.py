@@ -1,11 +1,8 @@
-
+# ptich và xếp hạg các mô hình, xác định top 3 mô hình tốt nhất, thứ hạg tvcformer
 from pathlib import Path
-
 import pandas as pd
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-
 RESULTS_DIR = PROJECT_ROOT / "experiments" / "results"
 INPUT_FILE = RESULTS_DIR / "benchmark_results.csv"
 OUTPUT_FILE = RESULTS_DIR / "model_comparison_summary.csv"
@@ -13,16 +10,12 @@ OUTPUT_FILE = RESULTS_DIR / "model_comparison_summary.csv"
 METRICS = ["MSE", "MAE"]
 TVCFORMER_NAME = "TVCFormer"
 
-
+# ptich và xếp hạg mô hình 
 def analyze_metric(group, metric):
-    """
-    Rank models by a metric.
-    Lower MSE and MAE values indicate better performance.
-    """
-
+    # Chỉ giữ các mô hình có giá trị chỉ số đánh giá hợp lệ
     valid = group.dropna(subset=[metric]).copy()
 
-    # Check for duplicate model results before ranking.
+    # Kiểm tra mô hình có nhiều kết quả trong cùng một nhóm hay không
     duplicated = valid[valid.duplicated(subset=["Model"], keep=False)]
 
     if not duplicated.empty:
@@ -38,24 +31,23 @@ def analyze_metric(group, metric):
     if valid.empty:
         return None
 
-    # Rank all available models: smaller metric values are better.
+    # Xếp hạng theo chỉ số đánh giá: MSE và MAE càng thấp thì thứ hạng càng cao
     valid["Rank"] = valid[metric].rank(
         method="min",
         ascending=True,
     ).astype(int)
 
-    # Sort by metric, then model name for stable output.
     valid = valid.sort_values(
         by=[metric, "Model"],
         ascending=[True, True],
     ).reset_index(drop=True)
 
-    # Get the top three models.
+    # Lấy ba mô hình có kết quả tốt nhất
     top1 = valid.iloc[0]
     top2 = valid.iloc[1] if len(valid) >= 2 else None
     top3 = valid.iloc[2] if len(valid) >= 3 else None
 
-    # Get TVCFormer's result and rank, if available.
+    # Lấy giá trị và thứ hạng của TVCFormer nếu có
     tvc_rows = valid[valid["Model"] == TVCFORMER_NAME]
 
     if not tvc_rows.empty:
@@ -65,7 +57,7 @@ def analyze_metric(group, metric):
         tvc_value = None
         tvc_rank = None
 
-    # Find the best baseline, excluding TVCFormer.
+    # Tìm mô hình đối chứng (baseline) tốt nhất, không tính TVCFormer
     baselines = valid[valid["Model"] != TVCFORMER_NAME]
 
     if not baselines.empty:
@@ -76,7 +68,8 @@ def analyze_metric(group, metric):
         best_baseline_name = None
         best_baseline_value = None
 
-    # Positive improvement means TVCFormer has a lower error.
+    # Tính phần trăm cải thiện của TVCFormer so với baseline tốt nhất
+    # Kết quả dương: TVCFormer có sai số thấp hơn baseline
     if (
         tvc_value is not None
         and best_baseline_value is not None
@@ -133,7 +126,7 @@ def main():
 
     df = pd.read_csv(INPUT_FILE, skipinitialspace=True)
 
-    # bỏ khỏag trắg 
+    # Loại bỏ khoảng trắng thừa trong tên cột
     df.columns = df.columns.str.strip()
 
     required_columns = {
@@ -149,7 +142,7 @@ def main():
         print(f"ERROR: Missing columns: {sorted(missing_columns)}")
         return
 
-    # Normalize model and dataset names.
+    # làm sạch dl
     df["Dataset"] = df["Dataset"].astype(str).str.strip()
     df["Model"] = df["Model"].astype(str).str.strip()
     df["Pred_len"] = pd.to_numeric(
@@ -160,11 +153,13 @@ def main():
     for metric in METRICS:
         df[metric] = pd.to_numeric(df[metric], errors="coerce")
 
+    # Loại các dòng thiếu thông tin định danh trước khi phân nhóm
     df = df.dropna(subset=["Dataset", "Pred_len", "Model"])
     df["Pred_len"] = df["Pred_len"].astype(int)
 
     summary_rows = []
 
+    # So sánh các mô hình theo từng bộ dữ liệu và độ dài dự báo
     for (dataset, pred_len), group in df.groupby(
         ["Dataset", "Pred_len"],
         sort=True,
@@ -180,6 +175,7 @@ def main():
         return
 
     summary = pd.DataFrame(summary_rows)
+
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     summary.to_csv(OUTPUT_FILE, index=False, encoding="utf-8-sig")
