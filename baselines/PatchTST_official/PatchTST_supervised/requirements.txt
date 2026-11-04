@@ -1,0 +1,6 @@
+# Ghi chú (VI): Danh sách thư viện cần cài cho mã trong thư mục này; dùng pip install -r requirements.txt.
+numpy
+matplotlib
+pandas
+scikit-learn
+torch==1.11.0

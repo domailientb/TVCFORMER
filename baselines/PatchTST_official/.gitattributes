@@ -1,0 +1,3 @@
+# Ghi chú (VI): Quy tắc Git bên dưới điều khiển cách chuẩn hóa/nhận diện một số loại tệp trong kho mã.
+* text=auto
+*.sh text eol=lf
