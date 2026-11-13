@@ -22,7 +22,7 @@ Use the compatible environment specified by `official/README.md`: Python 3.9, Py
 - ETTh1: `official/datasets/Ett_Series/ETTh1.csv`
 - Exchange_rate: `official/datasets/Customs/exchange_rate.csv`
 
-The Exchange_rate CSV must contain the standard eight numeric exchange-rate columns and no date column. If your local file has a date column or a different number of variables, adjust the loader/config before running.
+The Exchange_rate CSV should contain the standard eight numeric exchange-rate columns. A leading date column is supported and ignored for forecasting; a file containing only the eight numeric columns is also supported. Keep `enc_in: 8`.
 
 ## Run
 
