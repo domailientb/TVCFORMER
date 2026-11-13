@@ -75,12 +75,19 @@ class ATVFGraphGenerator(nn.Module):
         logits = 0.5 * (logits + logits.transpose(-1, -2))
         probabilities = torch.sigmoid(logits)
 
-        # Hard top-k edge selection per selected channel pair.
-        flat = probabilities.flatten(start_dim=-2)
-        keep_count = max(1, int(math.ceil(self.edge_keep_rate * flat.size(-1))))
-        keep_indices = torch.topk(flat, k=keep_count, dim=-1).indices
-        mask = torch.zeros_like(flat).scatter_(-1, keep_indices, 1.0)
-        mask = mask.reshape_as(probabilities)
+        # Symmetric top-k selection over undirected off-diagonal edges.
+        tri = torch.triu_indices(time_count, time_count, offset=1, device=x_in.device)
+        candidate_scores = probabilities[..., tri[0], tri[1]]
+        keep_count = max(1, int(math.ceil(
+            self.edge_keep_rate * candidate_scores.size(-1)
+        )))
+        keep_indices = torch.topk(candidate_scores, k=keep_count, dim=-1).indices
+        mask_upper = torch.zeros_like(candidate_scores).scatter_(
+            -1, keep_indices, 1.0
+        )
+        mask = probabilities.new_zeros(probabilities.shape)
+        mask[..., tri[0], tri[1]] = mask_upper
+        mask = mask + mask.transpose(-1, -2)
         selected_adj = probabilities * mask
 
         # Regularizers: stay near the correlation prior, avoid unnecessarily
