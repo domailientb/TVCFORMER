@@ -191,9 +191,15 @@ class Dataset_Custom(Dataset):
                                             self.data_path))
         
         cols = list(df_raw.columns)
-        cols.remove(self.target)
-        cols.remove('date')
-        df_raw = df_raw[['date'] + cols + [self.target]]
+        if 'date' in cols:
+            cols.remove('date')
+            target_col = self.target if self.target in cols else cols[-1]
+            cols.remove(target_col)
+            df_raw = df_raw[['date'] + cols + [target_col]]
+        else:
+            target_col = self.target if self.target in cols else cols[-1]
+            cols.remove(target_col)
+            df_raw = df_raw[cols + [target_col]]
         
         num_train = int(len(df_raw) * 0.7)
         num_test = int(len(df_raw) * 0.2)
