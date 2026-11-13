@@ -11,7 +11,7 @@
 
 from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
-from models import TVCFormer
+from models import TVCFormer, ATVF
 from utils.tools import EarlyStopping, adjust_learning_rate, visual, test_params_flop
 from utils.metrics import metric
 from utils.visual_utils import visualize_input, visualize_variable_corr, visualize_graph
@@ -54,6 +54,13 @@ def hook_graph(module, fea_in, fea_out):
 
 
 class Exp_Main(Exp_Basic):
+    def _get_auxiliary_loss(self):
+        # DataParallel stores the wrapped model in .module.
+        model = self.model.module if isinstance(self.model, nn.DataParallel) else self.model
+        if hasattr(model, "get_aux_loss"):
+            return model.get_aux_loss()
+        return None
+
     def __init__(self, args):
         super(Exp_Main, self).__init__(args)
     
@@ -61,6 +68,7 @@ class Exp_Main(Exp_Basic):
         
         model_dict = {
             'TVCFormer': TVCFormer,
+            'ATVF': ATVF,
         }
         model = model_dict[self.args.model].Model(self.args).float()
         
@@ -166,6 +174,9 @@ class Exp_Main(Exp_Basic):
                         f_dim = 0
                         batch_y_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                         loss = criterion_y(output_y, batch_y_y)
+                        aux_loss = self._get_auxiliary_loss()
+                        if aux_loss is not None:
+                            loss = loss + aux_loss
                         train_loss.append(loss.item())
                 else:
                     output_y = self.model(batch_x)
@@ -173,6 +184,9 @@ class Exp_Main(Exp_Basic):
                     f_dim = 0
                     batch_y_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                     loss = criterion_y(output_y, batch_y_y)
+                    aux_loss = self._get_auxiliary_loss()
+                    if aux_loss is not None:
+                        loss = loss + aux_loss
                     train_loss.append(loss.item())
                 
                 if (i + 1) % 100 == 0:
