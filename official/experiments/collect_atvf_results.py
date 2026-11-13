@@ -21,16 +21,27 @@ def main():
     args = parser.parse_args()
 
     text = Path(args.input).read_text(encoding="utf-8", errors="replace")
-    rows = [
-        {"setting": m.group("setting").strip(),
-         "mse": float(m.group("mse")),
-         "mae": float(m.group("mae"))}
-        for m in PATTERN.finditer(text)
-    ]
+    rows = []
+    for match in PATTERN.finditer(text):
+        setting = match.group("setting").strip()
+        # Expected ID prefix: ATVF_<dataset>_336_<horizon>_seed<seed>
+        meta = re.search(
+            r"ATVF_(ETTh1|exchange_rate)_336_(96|192|336|720)_seed(\\d+)",
+            setting,
+            flags=re.IGNORECASE,
+        )
+        rows.append({
+            "setting": setting,
+            "dataset": meta.group(1) if meta else "unknown",
+            "pred_len": int(meta.group(2)) if meta else "",
+            "seed": int(meta.group(3)) if meta else "",
+            "mse": float(match.group("mse")),
+            "mae": float(match.group("mae")),
+        })
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["setting", "mse", "mae"])
+        writer = csv.DictWriter(f, fieldnames=["setting", "dataset", "pred_len", "seed", "mse", "mae"])
         writer.writeheader()
         writer.writerows(rows)
     print(f"Wrote {len(rows)} parsed runs to {out}")
