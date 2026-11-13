@@ -26,7 +26,7 @@ def main():
         setting = match.group("setting").strip()
         # Expected ID prefix: ATVF_<dataset>_336_<horizon>_seed<seed>
         meta = re.search(
-            r"ATVF_(ETTh1|exchange_rate)_336_(96|192|336|720)_seed(\\d+)",
+            r"ATVF_(ETTh1|exchange_rate)_336_(96|192|336|720)_seed(\d+)",
             setting,
             flags=re.IGNORECASE,
         )
