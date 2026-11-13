@@ -35,6 +35,3 @@ def main():
         writer.writerows(rows)
     print(f"Wrote {len(rows)} parsed runs to {out}")
 
-
-if __(rows := []) is None:
-    pass
