@@ -17,6 +17,7 @@ data_dict = {
     'ETTm1': Dataset_ETTm,
     'ETTm2': Dataset_ETTm,
     'custom': Dataset_Custom,
+    'exchange_rate': Dataset_Custom,
     'weather': Dataset_Custom,
 }
 
