@@ -52,7 +52,7 @@ class Dataset_ETTh(Dataset):
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
         
-        cols_data = df_raw.columns[1:]
+        cols_data = df_raw.columns[1:] if 'date' in df_raw.columns else df_raw.columns
         df_data = df_raw[cols_data]
         
         if self.scale:
