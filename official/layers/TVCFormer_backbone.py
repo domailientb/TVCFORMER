@@ -35,6 +35,7 @@ class TVCFormer_backbone(nn.Module):
                     padding_var:Optional[int]=None, attn_mask:Optional[Tensor]=None, res_attention:bool=True, pre_norm:bool=False, store_attn:bool=False,
                     pe:str='zeros', learn_pe:bool=True, fc_dropout:float=0., head_dropout = 0, padding_patch = None,
                     pretrain_head:bool=False, head_type = 'flatten', individual = False, revin = True, affine = True, subtract_last = False,
+                    use_sdei:bool=False, sdei_gate_init:float=-3.0, sdei_shape:bool=True, sdei_gate_fixed:bool=False, sdei_lambda:float=0.0,
                     verbose:bool=False, **kwargs):
         super(TVCFormer_backbone, self).__init__()
         
@@ -75,9 +76,15 @@ class TVCFormer_backbone(nn.Module):
         
         self.statistic_norm = nn.LayerNorm(normalized_shape=[c_in, time_node_num], elementwise_affine=affine)
         
+        self.use_sdei = use_sdei
+        self.sdei_lambda = sdei_lambda
+        self.contrastive_loss = torch.tensor(0.0)
+        self.gate_value = None
         self.graph_generator = graph_generator(timenode_num=time_node_num, channel_num=c_in,
                                                 embeded_dim=self.statistics_num,
-                                                conv_hidden_size=graph_conv_hidden_size, conv_kernel_size=graph_conv_kernel_size)
+                                                conv_hidden_size=graph_conv_hidden_size, conv_kernel_size=graph_conv_kernel_size,
+                                                use_sdei=use_sdei, sdei_gate_init=sdei_gate_init,
+                                                sdei_shape=sdei_shape, sdei_gate_fixed=sdei_gate_fixed)
         
         self.detail_patch_total_len = patch_pre_node * time_node_num * d_model
         
@@ -111,7 +118,13 @@ class TVCFormer_backbone(nn.Module):
             z = z.permute(0,2,1)
             
         z_graph = z_embeded
-        s_A_i, s_A_v, adj_full = self.graph_generator(z_graph, ch_index_vector)
+        windows = None
+        if self.use_sdei:
+            w_chunks = torch.chunk(self.padding_patch_layer(z), self.time_node_num, dim=-1)
+            windows = torch.stack(w_chunks, dim=-2)
+        s_A_i, s_A_v, adj_full = self.graph_generator(z_graph, ch_index_vector, windows=windows)
+        self.contrastive_loss = getattr(self.graph_generator, 'last_loss_contrast', torch.tensor(0.0, device=z.device))
+        self.gate_value = getattr(self.graph_generator, 'last_gate', None)
         
         z = cut_detail_patches(z, self.time_node_num, self.patch_len, self.stride)  # batch_size × channel_num × total_patch_num x patch_len
         z_l, z_pred = self.backbone(z, s_A_i, s_A_v)

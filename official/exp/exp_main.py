@@ -165,14 +165,20 @@ class Exp_Main(Exp_Basic):
                         
                         f_dim = 0
                         batch_y_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                        loss = criterion_y(output_y, batch_y_y)
+                        loss_mse = criterion_y(output_y, batch_y_y)
+                        contrastive_loss = getattr(self.model, 'contrastive_loss', torch.tensor(0.0, device=self.device))
+                        sdei_lambda = getattr(self.args, 'sdei_lambda', 0.0)
+                        loss = loss_mse + sdei_lambda * contrastive_loss
                         train_loss.append(loss.item())
                 else:
                     output_y = self.model(batch_x)
                     
                     f_dim = 0
                     batch_y_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                    loss = criterion_y(output_y, batch_y_y)
+                    loss_mse = criterion_y(output_y, batch_y_y)
+                    contrastive_loss = getattr(self.model, 'contrastive_loss', torch.tensor(0.0, device=self.device))
+                    sdei_lambda = getattr(self.args, 'sdei_lambda', 0.0)
+                    loss = loss_mse + sdei_lambda * contrastive_loss
                     train_loss.append(loss.item())
                 
                 if (i + 1) % 100 == 0:
@@ -200,8 +206,11 @@ class Exp_Main(Exp_Basic):
             vali_loss = self.vali(vali_data, vali_loader, criterion_y=criterion_y, mode_flag='vail')
             test_loss = self.vali(test_data, test_loader, criterion_y=criterion_y, mode_flag='test')
             
-            print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
-                epoch + 1, train_steps, train_loss, vali_loss, test_loss))
+            gate_val = getattr(self.model, 'gate_value', None)
+            gate_str = f" | Gate: {gate_val.item():.4f}" if gate_val is not None else ""
+            c_loss_str = f" | Contrast: {contrastive_loss.item():.4f}" if getattr(self.args, 'sdei', 0) else ""
+            print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}{5}{6}".format(
+                epoch + 1, train_steps, train_loss, vali_loss, test_loss, gate_str, c_loss_str))
             
             early_stopping(vali_loss, self.model, path)
             if early_stopping.early_stop:
@@ -279,10 +288,13 @@ class Exp_Main(Exp_Basic):
             os.makedirs(folder_path)
         
         mae, mse, rmse, mape, mspe, rse, corr = metric(preds, trues)
-        print('mse:{}, mae:{}, rse:{}'.format(mse, mae, rse))
+        gate_val = getattr(self.model, 'gate_value', None)
+        gate_num = gate_val.item() if gate_val is not None else 0.0
+        gate_str = f", gate:{gate_num:.6f}" if getattr(self.args, 'sdei', 0) else ""
+        print('mse:{}, mae:{}, rse:{}{}'.format(mse, mae, rse, gate_str))
         f = open("result.txt", 'a')
         f.write(setting + "  \n")
-        f.write('mse:{}, mae:{}, rse:{}'.format(mse, mae, rse))
+        f.write('mse:{}, mae:{}, rse:{}{}'.format(mse, mae, rse, gate_str))
         f.write('\n')
         f.write('\n')
         f.close()

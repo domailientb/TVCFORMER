@@ -11,10 +11,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from utils.graph_utils import subgraph_tensor_to_full_graph_sparse_tensor
+from layers.sdei import SiameseEdgeInit
 
 
 class graph_generator(nn.Module):
-    def __init__(self, timenode_num, channel_num, embeded_dim, conv_hidden_size=4, conv_kernel_size=3):
+    def __init__(self, timenode_num, channel_num, embeded_dim, conv_hidden_size=4, conv_kernel_size=3,
+                 use_sdei=False, sdei_gate_init=-3.0, sdei_shape=True, sdei_gate_fixed=False):
         super(graph_generator, self).__init__()
         
         assert conv_kernel_size % 2 != 0, "conv_kernel_size must be an odd number"
@@ -22,6 +24,18 @@ class graph_generator(nn.Module):
         self.timenode_num = timenode_num
         self.channel_num = channel_num
         self.embeded_dim = embeded_dim
+        self.use_sdei = use_sdei
+        self.last_gate = None
+        self.last_loss_contrast = torch.tensor(0.0)
+        
+        if self.use_sdei:
+            self.sdei_module = SiameseEdgeInit(
+                use_shape=sdei_shape,
+                gate_init=sdei_gate_init,
+                gate_fixed=sdei_gate_fixed,
+            )
+        else:
+            self.sdei_module = None
         
         padding_size = (conv_kernel_size - 1) // 2
         self.sparse_padding = nn.ReflectionPad2d(padding=(padding_size, padding_size, padding_size, padding_size))
@@ -33,8 +47,15 @@ class graph_generator(nn.Module):
         
         nn.init.kaiming_uniform_(self.mode_capture_component, mode='fan_in', nonlinearity='relu')
         
-    def forward(self, x_in, index_vector):
-        x_graph = self.generate_chosen_subgraph_features(x_in=x_in, index_vector=index_vector)
+    def forward(self, x_in, index_vector, windows=None):
+        if self.use_sdei and self.sdei_module is not None and windows is not None:
+            x_graph, gate, loss_contrast = self.sdei_module(x_in, windows, index_vector)
+            self.last_gate = gate
+            self.last_loss_contrast = loss_contrast
+        else:
+            x_graph = self.generate_chosen_subgraph_features(x_in=x_in, index_vector=index_vector)
+            self.last_gate = None
+            self.last_loss_contrast = torch.tensor(0.0, device=x_in.device)
         x_graph = self.sparse_module(x_graph)
         sparse_indexs, sparse_values = subgraph_tensor_to_full_graph_sparse_tensor(x_graph, index_vector, self.channel_num, self.timenode_num)
         batch_size = x_graph.shape[0]

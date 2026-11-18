@@ -92,6 +92,13 @@ if __name__ == '__main__':
     parser.add_argument('--subgraph_keep_rate', type=float, default=0.5)
     parser.add_argument('--graph_keep_self_cycles', action='store_true', default=False)
     
+    # SDEI (Siamese Distribution-aware Edge Initializer) flags
+    parser.add_argument('--sdei', type=int, default=0, choices=[0, 1], help='enable SDEI (1) or baseline (0)')
+    parser.add_argument('--sdei_gate_init', type=float, default=-3.0, help='initial gate value for SDEI')
+    parser.add_argument('--sdei_lambda', type=float, default=0.0, help='weight for contrastive loss')
+    parser.add_argument('--sdei_shape', type=int, default=1, choices=[0, 1], help='use shape features in SDEI (1) or ablation (0)')
+    parser.add_argument('--sdei_gate_fixed', type=int, default=0, choices=[0, 1], help='fix gate to 1.0 (1) or learnable (0)')
+    
     with open(config_args.config_yaml, 'r', encoding='utf-8') as f:
         default_arg = yaml.safe_load(f)
         parser.set_defaults(**default_arg)
@@ -131,6 +138,8 @@ if __name__ == '__main__':
                 args.time_node_num,
                 args.subgraph_keep_rate,
                 ii)
+            if args.sdei:
+                setting = '{}_sdei_l{}_sh{}_gf{}'.format(setting, args.sdei_lambda, args.sdei_shape, args.sdei_gate_fixed)
             exp = Exp(args)
             print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
             exp.train(setting)

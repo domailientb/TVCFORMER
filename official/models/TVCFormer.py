@@ -64,6 +64,12 @@ class Model(nn.Module):
         graph_conv_hidden_size = configs.graph_conv_hidden_size
         graph_conv_kernel_size = configs.graph_conv_kernel_size
         
+        use_sdei = getattr(configs, 'sdei', 0) == 1
+        sdei_gate_init = getattr(configs, 'sdei_gate_init', -3.0)
+        sdei_lambda = getattr(configs, 'sdei_lambda', 0.0)
+        sdei_shape = getattr(configs, 'sdei_shape', 1) == 1
+        sdei_gate_fixed = getattr(configs, 'sdei_gate_fixed', 0) == 1
+        
         self.decomposition = decomposition
         
         if self.decomposition:
@@ -104,7 +110,10 @@ class Model(nn.Module):
                                             attn_mask=attn_mask, res_attention=res_attention, pre_norm=pre_norm, store_attn=store_attn,
                                             pe=pe, learn_pe=learn_pe, fc_dropout=fc_dropout, head_dropout=head_dropout, padding_patch = padding_patch,
                                             pretrain_head=pretrain_head, head_type=head_type, individual=individual, revin=revin, affine=affine,
-                                            subtract_last=subtract_last, verbose=verbose, **kwargs)
+                                            subtract_last=subtract_last,
+                                            use_sdei=use_sdei, sdei_gate_init=sdei_gate_init, sdei_shape=sdei_shape,
+                                            sdei_gate_fixed=sdei_gate_fixed, sdei_lambda=sdei_lambda,
+                                            verbose=verbose, **kwargs)
     
     def forward(self, x):  # x: [batch_size, seq_len, channel_num]
         
@@ -118,6 +127,8 @@ class Model(nn.Module):
         else:
             x = x.permute(0,2,1)
             out_y = self.model(x)
+            self.contrastive_loss = getattr(self.model, 'contrastive_loss', torch.tensor(0.0, device=x.device))
+            self.gate_value = getattr(self.model, 'gate_value', None)
             out_y = out_y.permute(0,2,1)
         
         return out_y  # out_y: [batch_size, seq_len, channel_num]
