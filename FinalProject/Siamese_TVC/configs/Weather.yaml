@@ -1,0 +1,6 @@
+dataset: Weather
+data: weather
+root_path: experiments/datasets
+data_path: weather.csv
+target: OT
+enc_in: 21

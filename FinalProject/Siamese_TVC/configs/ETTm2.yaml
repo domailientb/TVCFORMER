@@ -1,0 +1,6 @@
+dataset: ETTm2
+data: ETTm2
+root_path: experiments/datasets/ETT-small
+data_path: ETTm2.csv
+target: OT
+enc_in: 7

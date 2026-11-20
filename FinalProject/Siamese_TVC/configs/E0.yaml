@@ -1,0 +1,4 @@
+model_family: official_tvcformer
+candidate_mode: pearson
+siamese_gate_mode: statistical
+sdei: 0

@@ -1,0 +1,4 @@
+model_family: siamese_tvc
+candidate_mode: hybrid
+siamese_gate_mode: learned
+sdei: 1

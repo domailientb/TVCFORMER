@@ -1,0 +1,4 @@
+model_family: siamese_tvc
+candidate_mode: siamese
+siamese_gate_mode: siamese
+sdei: 1
